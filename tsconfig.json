@@ -9,8 +9,8 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": true,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
     "preserveWatchOutput": true,
     "resolveJsonModule": true,
     "outDir": "lib",
@@ -18,7 +18,9 @@
     "strict": true,
     "strictNullChecks": false,
     "target": "es2017",
-    "types": ["emscripten", "node"]
+    "skipLibCheck": true,
+    "allowJs": true,
+    "types": ["node"]
   },
   "include": ["src/*"]
 }

@@ -1,6 +1,8 @@
 import {
-  JupyterFrontEnd, JupyterFrontEndPlugin
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+
 import {
   ICommandPalette, MainAreaWidget
 } from '@jupyterlab/apputils';
@@ -99,10 +101,10 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette) {
  * Initialization data for the jupyterlab_dosbox extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab_dosbox',
-  autoStart: true,
-  requires: [ICommandPalette],
-  activate: activate
+    id: 'jupyterlab_dosbox:plugin',
+    autoStart: true,
+    requires: [ICommandPalette],
+    activate: activate
 };
 
 export default extension;

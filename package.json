@@ -72,7 +72,7 @@
     "style/index.js"
   ],
   "jupyterlab": {
-    "extension": "lib/plugin",
+    "extension": true,
     "outputDir": "jupyterlab_dosbox/labextension"
   },
   "styleModule": "style/index.js"

@@ -3,25 +3,23 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-import {
-  ICommandPalette, MainAreaWidget
-} from '@jupyterlab/apputils';
+import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { Widget } from '@lumino/widgets';
 
-import { 
-  DosFactory, DosMainFn
-} from "js-dos";
+import { DosFactory, DosMainFn } from 'js-dos';
 import { DosFS } from 'js-dos/dist/typescript/js-dos-fs';
 
-require("js-dos");
+require('js-dos');
 
 class DosboxWidget extends Widget {
   constructor() {
     super();
+    this.dosInitialized = false;
 
     this.addClass('dosbox-widget');
 
+    console.log('Creating a new canvas and appending.');
     this.canvas = document.createElement('canvas');
     this.node.appendChild(this.canvas);
   }
@@ -29,30 +27,34 @@ class DosboxWidget extends Widget {
   readonly canvas: HTMLCanvasElement;
   main: DosMainFn;
   fs: DosFS;
+  dosInitialized: boolean;
 
-  async onUpdateRequest() : Promise<void> {
+  async onUpdateRequest(): Promise<void> {
+    if (this.dosInitialized) {
+      return;
+    }
+    this.dosInitialized = true;
     const Dos = (window as any).Dos as DosFactory;
     const dosLaunched = await Dos(this.canvas, {
-      wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js" 
+      wdosboxUrl: 'https://js-dos.com/6.22/current/wdosbox.js'
     });
     // dosLaunched.fs.extract()
+    console.log('Creating a new Dos instance');
     this.fs = dosLaunched.fs;
     this.main = dosLaunched.main;
     dosLaunched.main();
   }
-
 }
 
-
-function activate(app: JupyterFrontEnd, palette: ICommandPalette) {
+function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
   const content = new DosboxWidget();
   const widget = new MainAreaWidget({ content });
   widget.id = 'dosbox';
   widget.title.label = 'DosBox Emulator';
   widget.title.closable = true;
-  const commandRun: string = 'dosbox:open';
+  const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {
-    label: 'Run DosBox',
+    label: 'Dosbox: Run',
     execute: () => {
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
@@ -65,21 +67,20 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette) {
   });
   // Add the command to the palette.
 
-  const commandExtract: string = 'dosbox:extract';
+  const commandExtract = 'dosbox:extract';
   app.commands.addCommand(commandExtract, {
-    label: 'Extract File',
+    label: 'Dosbox: Extract File',
     execute: () => {
       if (!widget.content.fs) {
         return;
       }
-      console.log("Extracting...");
-      widget.content.fs.extract(
-        "https://js-dos.com/6.22/current/test/digger.zip",
-        "/game"
-      ).then(() => {
-        console.log("Extracted.")
-      }
-      ).catch((err) => console.log("UH OH", err));
+      console.log('Extracting...');
+      widget.content.fs
+        .extract('https://js-dos.com/6.22/current/test/digger.zip', '/game')
+        .then(() => {
+          console.log('Extracted.');
+        })
+        .catch((err: any) => console.log('UH OH', err));
     }
   });
 
@@ -99,10 +100,10 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette) {
  * Initialization data for the jupyterlab_dosbox extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-    id: 'jupyterlab_dosbox:plugin',
-    autoStart: true,
-    requires: [ICommandPalette],
-    activate: activate
+  id: 'jupyterlab_dosbox:plugin',
+  autoStart: true,
+  requires: [ICommandPalette],
+  activate: activate
 };
 
 export default extension;

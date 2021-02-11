@@ -41,8 +41,18 @@ class DosboxWidget extends Widget {
     // dosLaunched.fs.extract()
     console.log('Creating a new Dos instance');
     this.fs = dosLaunched.fs;
+    await this.fs.extract('https://caiiiycuk.github.io/dosify/digger.zip');
     this.main = dosLaunched.main;
     dosLaunched.main();
+  }
+
+  retrieveFile(filename: string): Uint8Array {
+    return (this.fs as any).fs.readFile(filename);
+  }
+
+  writeFile(filename: string, data: string) {
+      console.log("Writing ", filename, data);
+      this.fs.createFile(filename, data);
   }
 }
 
@@ -52,6 +62,22 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
   widget.id = 'dosbox';
   widget.title.label = 'DosBox Emulator';
   widget.title.closable = true;
+
+  const commandRetrieve = 'dosbox:retrieve';
+  app.commands.addCommand(commandRetrieve, {
+    label: 'Dosbox: Retrieve',
+    execute: () => {
+      if (!widget.content.fs) {
+        return;
+      }
+      console.log('Attmepting to write');
+      widget.content.writeFile('/example', 'hello there');
+      console.log('Attempting to retrieve');
+      const buffer: Uint8Array = widget.content.retrieveFile('/example');
+      console.log(buffer);
+    }
+  });
+
   const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {
     label: 'Dosbox: Run',
@@ -84,6 +110,7 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
     }
   });
 
+  palette.addItem({ command: commandRetrieve, category: 'Tutorial' });
   palette.addItem({ command: commandRun, category: 'Tutorial' });
   palette.addItem({ command: commandExtract, category: 'Tutorial' });
 

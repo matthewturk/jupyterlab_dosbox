@@ -7,9 +7,7 @@ import {
   ICommandPalette, MainAreaWidget
 } from '@jupyterlab/apputils';
 
-import {
-  Widget
-} from '@phosphor/widgets';
+import { Widget } from '@lumino/widgets';
 
 import { 
   DosFactory, DosMainFn

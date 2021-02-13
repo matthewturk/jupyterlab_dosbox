@@ -7,10 +7,12 @@ import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { Widget } from '@lumino/widgets';
 
-import { Build } from 'emulators/dist/types/build';
+const emulators = await import('emulators');
+
 import { CommandInterface } from 'emulators';
 import { EmulatorsUi } from 'emulators-ui';
 import { DosInstance } from 'js-dos';
+
 
 class DosboxWidget extends Widget {
   constructor() {
@@ -28,7 +30,6 @@ class DosboxWidget extends Widget {
   async startDos(): Promise<void> {
     this.ui = new EmulatorsUi();
     this.dos = new DosInstance(this.dosDiv);
-      console.log(Build);
     this.ci = await this.dos.run(
       'https://doszone-uploads.s3.dualstack.eu-central-1.amazonaws.com/original/2X/9/9ed7eb9c2c441f56656692ed4dc7ab28f58503ce.jsdos'
     );

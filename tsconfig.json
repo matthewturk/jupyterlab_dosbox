@@ -19,7 +19,7 @@
     "strictNullChecks": false,
     "target": "es2017",
     "skipLibCheck": true,
-    "types": ["node", "emscripten"]
+    "types": []
   },
   "include": ["src/*"]
 }

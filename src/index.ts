@@ -7,10 +7,10 @@ import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { Widget } from '@lumino/widgets';
 
-import { DosFactory, DosMainFn } from 'js-dos';
-import { DosFS } from 'js-dos/dist/typescript/js-dos-fs';
-
-require('js-dos');
+import { Build } from 'emulators/dist/types/build';
+import { CommandInterface } from 'emulators';
+import { EmulatorsUi } from 'emulators-ui';
+import { DosInstance } from 'js-dos';
 
 class DosboxWidget extends Widget {
   constructor() {
@@ -20,39 +20,35 @@ class DosboxWidget extends Widget {
     this.addClass('dosbox-widget');
 
     console.log('Creating a new canvas and appending.');
-    this.canvas = document.createElement('canvas');
-    this.node.appendChild(this.canvas);
+    this.dosDiv = document.createElement('div');
+    this.dosDiv.setAttribute('id', 'dos-' + this.id);
+    this.node.appendChild(this.dosDiv);
   }
 
-  readonly canvas: HTMLCanvasElement;
-  main: DosMainFn;
-  fs: DosFS;
+  async startDos(): Promise<void> {
+    this.ui = new EmulatorsUi();
+    this.dos = new DosInstance(this.dosDiv);
+      console.log(Build);
+    this.ci = await this.dos.run(
+      'https://doszone-uploads.s3.dualstack.eu-central-1.amazonaws.com/original/2X/9/9ed7eb9c2c441f56656692ed4dc7ab28f58503ce.jsdos'
+    );
+    this.ci.screenshot();
+  }
+
+  readonly dosDiv: HTMLDivElement;
   dosInitialized: boolean;
+  dos: DosInstance;
+  ci: CommandInterface;
+  ui: EmulatorsUi;
+  rv: any;
 
   async onUpdateRequest(): Promise<void> {
     if (this.dosInitialized) {
       return;
     }
     this.dosInitialized = true;
-    const Dos = (window as any).Dos as DosFactory;
-    const dosLaunched = await Dos(this.canvas, {
-      wdosboxUrl: 'https://js-dos.com/6.22/current/wdosbox.js'
-    });
-    // dosLaunched.fs.extract()
     console.log('Creating a new Dos instance');
-    this.fs = dosLaunched.fs;
-    await this.fs.extract('https://caiiiycuk.github.io/dosify/digger.zip');
-    this.main = dosLaunched.main;
-    dosLaunched.main();
-  }
-
-  retrieveFile(filename: string): Uint8Array {
-    return (this.fs as any).fs.readFile(filename);
-  }
-
-  writeFile(filename: string, data: string) {
-      console.log("Writing ", filename, data);
-      this.fs.createFile(filename, data);
+    this.startDos();
   }
 }
 
@@ -62,21 +58,6 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
   widget.id = 'dosbox';
   widget.title.label = 'DosBox Emulator';
   widget.title.closable = true;
-
-  const commandRetrieve = 'dosbox:retrieve';
-  app.commands.addCommand(commandRetrieve, {
-    label: 'Dosbox: Retrieve',
-    execute: () => {
-      if (!widget.content.fs) {
-        return;
-      }
-      console.log('Attmepting to write');
-      widget.content.writeFile('/example', 'hello there');
-      console.log('Attempting to retrieve');
-      const buffer: Uint8Array = widget.content.retrieveFile('/example');
-      console.log(buffer);
-    }
-  });
 
   const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {
@@ -93,26 +74,7 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
   });
   // Add the command to the palette.
 
-  const commandExtract = 'dosbox:extract';
-  app.commands.addCommand(commandExtract, {
-    label: 'Dosbox: Extract File',
-    execute: () => {
-      if (!widget.content.fs) {
-        return;
-      }
-      console.log('Extracting...');
-      widget.content.fs
-        .extract('https://js-dos.com/6.22/current/test/digger.zip', '/game')
-        .then(() => {
-          console.log('Extracted.');
-        })
-        .catch((err: any) => console.log('UH OH', err));
-    }
-  });
-
-  palette.addItem({ command: commandRetrieve, category: 'Tutorial' });
   palette.addItem({ command: commandRun, category: 'Tutorial' });
-  palette.addItem({ command: commandExtract, category: 'Tutorial' });
 
   /*Dos(document.getElementById("jsdos"), {
     wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js"

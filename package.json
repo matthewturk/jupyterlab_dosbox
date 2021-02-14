@@ -47,7 +47,6 @@
   "dependencies": {
     "emulators": "^0.0.54",
     "emulators-ui": "^0.0.50",
-    "js-dos": "^7.0.0-beta.r25",
     "@jupyterlab/application": "^3.0.4",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/coreutils": "^5.0.2",
@@ -99,7 +98,7 @@
     "style/index.js"
   ],
   "jupyterlab": {
-    "extension": "lib/index",
+    "extension": true,
     "outputDir": "jupyterlab_dosbox/labextension",
     "webpackConfig": "./webpack.config.js"
   },

@@ -98,7 +98,7 @@
     "style/index.js"
   ],
   "jupyterlab": {
-    "extension": true,
+    "extension": "lib/plugin",
     "outputDir": "jupyterlab_dosbox/labextension",
     "webpackConfig": "./webpack.config.js"
   },

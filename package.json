@@ -98,6 +98,16 @@
     "style/index.js"
   ],
   "jupyterlab": {
+    "discovery": {
+        "server": {
+          "managers": [
+            "pip"
+          ],
+          "base": {
+            "name": "jupyterlab_dosbox"
+          }
+        }
+    },
     "extension": "lib/plugin",
     "outputDir": "jupyterlab_dosbox/labextension",
     "webpackConfig": "./webpack.config.js"

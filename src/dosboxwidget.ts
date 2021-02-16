@@ -4,13 +4,16 @@ import { CommandInterface } from 'emulators';
 import { DosFactoryType, DosInstance } from 'emulators-ui/dist/types/js-dos';
 
 import { URLExt } from '@jupyterlab/coreutils';
-
 import { ServerConnection } from '@jupyterlab/services';
+import { EmulatorsUi } from 'emulators-ui';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _emulators = await import('emulators');
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _emulatorsUi = await import('emulators-ui');
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+//const _wworker = await import('emulators/dist/wworker');
 
 declare const Dos: DosFactoryType;
 
@@ -32,9 +35,10 @@ export class DosboxWidget extends Widget {
     const requestUrl = URLExt.join(
       settings.baseUrl,
       'jupyterlab_dosbox', // API Namespace
-      'get_example.jsdos'
+      'get_example',
+      'a1.jsdos'
     );
-    this.dos = Dos(this.dosDiv);
+    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosWorker' });
     this.ci = await this.dos.run(requestUrl);
     this.ci.screenshot();
   }

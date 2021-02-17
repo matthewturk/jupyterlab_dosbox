@@ -32,16 +32,16 @@ declare const Dos: DosFactoryType;
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
 
-function serializeArray(array: Float64Array): DataView {
+function serializeArray(array: Uint8ClampedArray): DataView {
   return new DataView(array.buffer.slice(0));
 }
 
-function deserializeArray(dataview: DataView | null): Float64Array | null {
+function deserializeArray(dataview: DataView | null): Uint8ClampedArray | null {
   if (dataview === null) {
     return null;
   }
 
-  return new Float64Array(dataview.buffer);
+  return new Uint8ClampedArray(dataview.buffer);
 }
 
 export class DosboxRuntimeModel extends DOMWidgetModel {
@@ -50,6 +50,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
       ...super.defaults(),
       running: false,
       activelayer: 'default',
+      _last_screenshot: undefined,
       _model_name: DosboxRuntimeModel.model_name,
       _model_module: DosboxRuntimeModel.model_module,
       _model_module_version: DosboxRuntimeModel.model_module_version,
@@ -78,6 +79,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   // Inspired by the ipycanvas commands
   private async onCommand(command: any, buffers: any) {
     // Process keyboard commands first
+    let screenshot: ImageData;
     switch (command.name) {
       case 'sendKeys':
         (command.args as Array<string>).forEach((element: string) => {
@@ -88,6 +90,13 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
           this.ci.sendKeyEvent(keyCode, false);
         });
         break;
+      case 'screenshot':
+        console.log('Received a screenshot request');
+        screenshot = await this.ci.screenshot();
+        console.log(screenshot);
+        this.set('_last_screenshot', screenshot.data);
+        this.save();
+        break;
       default:
         break;
     }
@@ -95,7 +104,10 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 
   static serializers: ISerializers = {
     ...DOMWidgetModel.serializers,
-    lastScreenshot: { serialize: serializeArray, deserialize: deserializeArray }
+    _last_screenshot: {
+      serialize: serializeArray,
+      deserialize: deserializeArray
+    }
   };
 
   async run(
@@ -159,7 +171,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 
   dos: DosInstance;
   ci: CommandInterface;
-  lastScreenshot: Uint8Array;
+  _last_screenshot: Uint8ClampedArray;
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
   running: boolean;

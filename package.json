@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab_dosbox",
+  "name": "jupyterlab-dosbox",
   "version": "0.1.0",
   "description": "Run DosBox in jupyterlab",
   "keywords": [
@@ -57,8 +57,6 @@
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.0.0",
-    "@phosphor/application": "^1.6.0",
-    "@phosphor/widgets": "^1.6.0",
     "@types/expect.js": "^0.3.29",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.11.6",

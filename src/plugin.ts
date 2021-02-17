@@ -3,16 +3,39 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-import * as dosboxWidgetExports from './dosboxwidget';
+import { IJupyterWidgetRegistry } from '@jupyter-widgets/base';
 
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
-function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
-  const content = new dosboxWidgetExports.DosboxWidget();
+import {
+  DosboxWidget,
+  DosboxRuntimeModel,
+  DosboxRuntimeView
+} from './dosboxwidget';
+
+import { MODULE_NAME, MODULE_VERSION } from './version';
+const EXTENSION_ID = MODULE_NAME + ':plugin';
+
+async function activate(
+  app: JupyterFrontEnd,
+  palette: ICommandPalette,
+  registry: IJupyterWidgetRegistry
+): Promise<void> {
+  const content = new DosboxWidget();
   const widget = new MainAreaWidget({ content });
   widget.id = 'dosbox';
   widget.title.label = 'DosBox Emulator';
   widget.title.closable = true;
+
+  console.log('Registered ' + MODULE_NAME + ' ' + MODULE_VERSION);
+  registry.registerWidget({
+    name: MODULE_NAME,
+    version: MODULE_VERSION,
+    exports: {
+      DosboxRuntimeModel: DosboxRuntimeModel,
+      DosboxRuntimeView: DosboxRuntimeView
+    }
+  });
 
   const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {
@@ -44,9 +67,9 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette): void {
  * Initialization data for the jupyterlab_dosbox extension.
  */
 const dosboxPlugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab_dosbox:plugin',
+  id: EXTENSION_ID,
   autoStart: true,
-  requires: [ICommandPalette],
+  requires: [ICommandPalette, IJupyterWidgetRegistry],
   activate: activate
 };
 

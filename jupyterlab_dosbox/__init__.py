@@ -35,3 +35,4 @@ def _load_jupyter_server_extension(server_app):
     setup_handlers(server_app.web_app)
     server_app.log.info("Registered HelloWorld extension at URL path /jupyterlab_dosbox")
 
+from .dosbox_view import DosboxModel

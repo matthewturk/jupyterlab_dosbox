@@ -1,12 +1,8 @@
 import { UUID } from '@lumino/coreutils';
-import { Widget } from '@lumino/widgets';
 import {
   DOMWidgetModel,
   ISerializers,
-  WidgetModel,
-  unpack_models,
-  DOMWidgetView,
-  ViewList
+  DOMWidgetView
 } from '@jupyter-widgets/base';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
@@ -44,48 +40,6 @@ function deserializeArray(dataview: DataView | null): Float64Array | null {
   }
 
   return new Float64Array(dataview.buffer);
-}
-
-export class DosboxWidget extends Widget {
-  constructor() {
-    super();
-    this.dosInitialized = false;
-    emulators.pathPrefix = '/jupyterlab_dosbox/wasm/';
-
-    this.addClass('dosbox-widget');
-
-    console.log('Creating a new canvas and appending.');
-    this.dosDiv = document.createElement('div');
-    this.dosDiv.setAttribute('id', 'dos-' + this.id);
-    this.node.appendChild(this.dosDiv);
-  }
-
-  async startDos(): Promise<void> {
-    const settings = ServerConnection.makeSettings();
-    const requestUrl = URLExt.join(
-      settings.baseUrl,
-      'jupyterlab_dosbox', // API Namespace
-      'bundles',
-      'a1.jsdos'
-    );
-    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosWorker' });
-    this.ci = await this.dos.run(requestUrl);
-    this.ci.screenshot();
-  }
-
-  readonly dosDiv: HTMLDivElement;
-  dosInitialized: boolean;
-  dos: DosInstance;
-  ci: CommandInterface;
-
-  async onUpdateRequest(): Promise<void> {
-    if (this.dosInitialized) {
-      return;
-    }
-    this.dosInitialized = true;
-    console.log('Creating a new Dos instance');
-    this.startDos();
-  }
 }
 
 export class DosboxRuntimeModel extends DOMWidgetModel {

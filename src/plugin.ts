@@ -7,11 +7,9 @@ import { IJupyterWidgetRegistry } from '@jupyter-widgets/base';
 
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
-import {
-  DosboxWidget,
-  DosboxRuntimeModel,
-  DosboxRuntimeView
-} from './dosboxwidget';
+import { DosboxWidget } from './standalone';
+
+import * as dosboxWidgetExports from './widget';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
 const EXTENSION_ID = MODULE_NAME + ':plugin';
@@ -31,10 +29,7 @@ async function activate(
   registry.registerWidget({
     name: MODULE_NAME,
     version: MODULE_VERSION,
-    exports: {
-      DosboxRuntimeModel: DosboxRuntimeModel,
-      DosboxRuntimeView: DosboxRuntimeView
-    }
+    exports: dosboxWidgetExports
   });
 
   const commandRun = 'dosbox:open';

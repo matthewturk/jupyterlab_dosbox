@@ -8,7 +8,7 @@
     "jsx": "react",
     "module": "esnext",
     "moduleResolution": "node",
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "noImplicitAny": true,
     "noUnusedLocals": false,
     "preserveWatchOutput": true,
@@ -18,8 +18,8 @@
     "strict": true,
     "strictNullChecks": false,
     "target": "es2017",
-    "skipLibCheck": true,
-    "types": ["node", "emscripten"]
+    "types": ["node"],
+    "skipLibCheck": true
   },
-  "include": ["src/*"]
+  "include": ["src/*.ts"]
 }

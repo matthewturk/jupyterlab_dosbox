@@ -12,3 +12,9 @@ class DosboxModel(ipywidgets.DOMWidget):
     _view_name = traitlets.Unicode('DosboxRuntimeView').tag(sync=True)
     _view_module = traitlets.Unicode('jupyterlab-dosbox').tag(sync=True)
     _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
+    activelayer = traitlets.Unicode('default').tag(sync=True)
+
+    def send_line(self, line):
+        command = {'name': 'sendKeys', 'args': ["KBD_%s" % _.lower() for _ in
+        line]}
+        self.send(command)

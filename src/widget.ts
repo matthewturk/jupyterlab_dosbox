@@ -5,6 +5,7 @@ import {
   DOMWidgetView
 } from '@jupyter-widgets/base';
 import { MODULE_NAME, MODULE_VERSION } from './version';
+import { extractLayersConfig, LayersConfig } from './layerinterface';
 
 import { CommandInterface, Emulators } from 'emulators';
 import { DosFactoryType, DosInstance } from 'emulators-ui/dist/types/js-dos';
@@ -19,6 +20,7 @@ import { Layers } from 'emulators-ui/dist/types/dom/layers';
 const _emulators = await import('emulators');
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _emulatorsUi = await import('emulators-ui');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 // Having this be 'janus' causes some issues we can't work around
 const workerType = 'dosWorker';
@@ -47,6 +49,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     return {
       ...super.defaults(),
       running: false,
+      activelayer: 'default',
       _model_name: DosboxRuntimeModel.model_name,
       _model_module: DosboxRuntimeModel.model_module,
       _model_module_version: DosboxRuntimeModel.model_module_version,
@@ -58,7 +61,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async initialize(attributes: any, options: any): Promise<void> {
-    await super.initialize(attributes, options);
+    super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(
@@ -69,6 +72,25 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     );
     this.ci = await this.run(requestUrl);
     this.set('running', true);
+    this.on('msg:custom', this.onCommand.bind(this));
+  }
+
+  // Inspired by the ipycanvas commands
+  private async onCommand(command: any, buffers: any) {
+    // Process keyboard commands first
+    switch (command.name) {
+      case 'sendKeys':
+        (command.args as Array<string>).forEach((element: string) => {
+          const keyCode = this.emulatorsUi.controls.namedKeyCodes[element];
+          console.log('Sending ...', element, keyCode);
+          //this.ci.simulateKeyPress(keyCode);
+          this.ci.sendKeyEvent(keyCode, true);
+          this.ci.sendKeyEvent(keyCode, false);
+        });
+        break;
+      default:
+        break;
+    }
   }
 
   static serializers: ISerializers = {
@@ -141,6 +163,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
   running: boolean;
+  activelayer = 'default';
 
   static model_name = 'DosboxRuntimeModel';
   static model_module = MODULE_NAME;
@@ -155,16 +178,21 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.div = document.createElement('div');
     this.divId = 'dos-' + UUID.uuid4();
     this.div.setAttribute('id', this.divId);
-    this.div.classList.add('jsdos');
+    this.el.classList.add('jsdos');
     this.el.appendChild(this.div);
     this.setupEventListeners();
+    if (this.model.get('running')) {
+      this.connectLayers();
+    }
   }
 
   setupEventListeners(): void {
     this.model.on('change:running', this.connectLayers, this);
+    this.model.on('change:activelayer', this.changeLayer, this);
   }
 
   async connectLayers(): Promise<void> {
+    (window as any).dosboxWidget = this;
     this.ci = await this.model.ciPromise;
     console.log(this.model.ciPromise);
     console.log(this.model);
@@ -176,8 +204,38 @@ export class DosboxRuntimeView extends DOMWidgetView {
     emulatorsUi.persist.save('', this.layers, this.ci, emulators);
     this.model.emulatorsUi.graphics.webGl(this.layers, this.ci);
     this.model.emulatorsUi.sound.audioNode(this.ci);
+    const config = await this.ci.config();
+    this.layerConfig = extractLayersConfig(config);
+    this.layerNames = Object.keys(this.layerConfig);
+    emulatorsUi.controls.options(
+      this.layers,
+      this.ci,
+      this.layerNames,
+      this.changeLayer
+    );
+    // Make all the different layers invisible or hidden
+    (this.layers as any).clickToStart.style.display = 'none';
+    this.layers.hideLoadingLayer();
+    this.layers.video.style.display = 'none';
+    this.layers.loading.style.display = 'none';
   }
 
+  changeLayer(): void {
+    if (this.layerNames === undefined) {
+      return;
+    }
+    const layerName: string = this.model.get('activelayer');
+    const layer = this.layerConfig[layerName];
+    if (layer === undefined) {
+      return;
+    }
+    emulatorsUi.controls.keyboard(this.layers, this.ci, layer.mapper);
+    emulatorsUi.controls.mouse(this.layers, this.ci);
+    console.log('Set the controls');
+  }
+
+  layerNames: string[] = null;
+  layerConfig: LayersConfig = null;
   model: DosboxRuntimeModel;
   div: HTMLDivElement;
   divId: string;

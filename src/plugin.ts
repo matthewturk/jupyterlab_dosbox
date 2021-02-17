@@ -31,6 +31,7 @@ async function activate(
     version: MODULE_VERSION,
     exports: dosboxWidgetExports
   });
+  console.log(dosboxWidgetExports);
 
   const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {

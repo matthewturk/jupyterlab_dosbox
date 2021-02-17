@@ -48,7 +48,10 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
       ...super.defaults(),
       _model_name: DosboxRuntimeModel.model_name,
       _model_module: DosboxRuntimeModel.model_module,
-      _model_module_version: DosboxRuntimeModel.model_module_version
+      _model_module_version: DosboxRuntimeModel.model_module_version,
+      _view_name: DosboxRuntimeModel.view_name,
+      _view_module: DosboxRuntimeModel.view_module,
+      _view_module_version: DosboxRuntimeModel.view_module_version
     };
   }
 

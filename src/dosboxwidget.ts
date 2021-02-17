@@ -8,7 +8,7 @@ import {
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
 import { CommandInterface, Emulators } from 'emulators';
-import { DosFactoryType, DosInstance, DosOptions } from 'emulators-ui/dist/types/js-dos';
+import { DosFactoryType, DosInstance } from 'emulators-ui/dist/types/js-dos';
 
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
@@ -29,6 +29,18 @@ const workerType = 'dosWorker';
 declare const Dos: DosFactoryType;
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
+
+function serializeArray(array: Float64Array): DataView {
+  return new DataView(array.buffer.slice(0));
+}
+
+function deserializeArray(dataview: DataView | null): Float64Array | null {
+  if (dataview === null) {
+    return null;
+  }
+
+  return new Float64Array(dataview.buffer);
+}
 
 export class DosboxWidget extends Widget {
   constructor() {
@@ -82,6 +94,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async initialize(attributes: any, options: any): Promise<void> {
     super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;
@@ -99,7 +112,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   static serializers: ISerializers = {
     ...DOMWidgetModel.serializers,
     lastScreenshot: { serialize: serializeArray, deserialize: deserializeArray }
-  }
+  };
 
   async run(
     bundleUrl: string,

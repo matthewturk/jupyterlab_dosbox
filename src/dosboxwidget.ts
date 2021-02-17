@@ -5,7 +5,8 @@ import {
   ISerializers,
   WidgetModel,
   unpack_models,
-  DOMWidgetView
+  DOMWidgetView,
+  ViewList
 } from '@jupyter-widgets/base';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
@@ -15,6 +16,7 @@ import { DosFactoryType, DosInstance } from 'emulators-ui/dist/types/js-dos';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import { EmulatorsUi } from 'emulators-ui';
+import { Layers } from 'emulators-ui/dist/types/dom/layers';
 //import { EmulatorsUi } from 'emulators-ui';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -189,14 +191,22 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 }
 
 export class DosboxRuntimeView extends DOMWidgetView {
-  render(): void {
+  async render(): Promise<void> {
     this.div = document.createElement('div');
     this.divId = 'dos-' + UUID.uuid4();
     this.div.setAttribute('id', this.divId);
     this.el.appendChild(this.div);
-    // This is where we will connect our layers
+    this.layers = this.model.get('dos').dom.layers(this.div);
+    this.ci = await this.model.get('ciPromise');
+
+    // This is where we will connect our layers. It's possible this will cause
+    // issues with multiple views.
+    emulatorsUi.graphics.webGl(this.layers, this.ci);
+    emulatorsUi.sound.audioNode(this.ci);
   }
 
   div: HTMLDivElement;
   divId: string;
+  layers: Layers;
+  ci: CommandInterface;
 }

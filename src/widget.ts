@@ -46,6 +46,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   defaults(): any {
     return {
       ...super.defaults(),
+      running: false,
       _model_name: DosboxRuntimeModel.model_name,
       _model_module: DosboxRuntimeModel.model_module,
       _model_module_version: DosboxRuntimeModel.model_module_version,
@@ -57,7 +58,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async initialize(attributes: any, options: any): Promise<void> {
-    super.initialize(attributes, options);
+    await super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(
@@ -67,7 +68,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
       'a1.jsdos'
     );
     this.ci = await this.run(requestUrl);
-    this.ci.screenshot();
+    this.set('running', true);
   }
 
   static serializers: ISerializers = {
@@ -129,6 +130,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     const ci = await this.ciPromise;
     delete this.ciPromise;
     await ci.exit();
+    this.set('running', false);
 
     return;
   }
@@ -138,6 +140,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   lastScreenshot: Uint8Array;
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
+  running: boolean;
 
   static model_name = 'DosboxRuntimeModel';
   static model_module = MODULE_NAME;
@@ -148,20 +151,34 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
 }
 
 export class DosboxRuntimeView extends DOMWidgetView {
-  async render(): Promise<void> {
+  render(): void {
     this.div = document.createElement('div');
     this.divId = 'dos-' + UUID.uuid4();
     this.div.setAttribute('id', this.divId);
+    this.div.classList.add('jsdos');
     this.el.appendChild(this.div);
-    this.layers = this.model.get('dos').dom.layers(this.div);
-    this.ci = await this.model.get('ciPromise');
+    this.setupEventListeners();
+  }
+
+  setupEventListeners(): void {
+    this.model.on('change:running', this.connectLayers, this);
+  }
+
+  async connectLayers(): Promise<void> {
+    this.ci = await this.model.ciPromise;
+    console.log(this.model.ciPromise);
+    console.log(this.model);
+    console.log(this.ci);
+    this.layers = this.model.emulatorsUi.dom.layers(this.div);
 
     // This is where we will connect our layers. It's possible this will cause
     // issues with multiple views.
-    emulatorsUi.graphics.webGl(this.layers, this.ci);
-    emulatorsUi.sound.audioNode(this.ci);
+    emulatorsUi.persist.save('', this.layers, this.ci, emulators);
+    this.model.emulatorsUi.graphics.webGl(this.layers, this.ci);
+    this.model.emulatorsUi.sound.audioNode(this.ci);
   }
 
+  model: DosboxRuntimeModel;
   div: HTMLDivElement;
   divId: string;
   layers: Layers;

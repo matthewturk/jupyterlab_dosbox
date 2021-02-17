@@ -1,9 +1,11 @@
+import { UUID } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 import {
   DOMWidgetModel,
   ISerializers,
   WidgetModel,
-  unpack_models
+  unpack_models,
+  DOMWidgetView
 } from '@jupyter-widgets/base';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
@@ -181,4 +183,20 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   static model_name = 'DosboxRuntimeModel';
   static model_module = MODULE_NAME;
   static model_module_version = MODULE_VERSION;
+  static view_name = 'DosboxRuntimeView';
+  static view_module = MODULE_NAME;
+  static view_module_version = MODULE_VERSION;
+}
+
+export class DosboxRuntimeView extends DOMWidgetView {
+  render(): void {
+    this.div = document.createElement('div');
+    this.divId = 'dos-' + UUID.uuid4();
+    this.div.setAttribute('id', this.divId);
+    this.el.appendChild(this.div);
+    // This is where we will connect our layers
+  }
+
+  div: HTMLDivElement;
+  divId: string;
 }

@@ -5,6 +5,20 @@ from jupyter_server.utils import url_path_join
 import tornado
 import pkg_resources
 import os
+import io
+import zipfile
+
+_default_components = ['dosbox.conf', 'jsdos.json']
+
+_b = io.BytesIO()
+with zipfile.ZipFile(_b, "w") as f:
+    print("Handling the zip!")
+    for fn in _default_components:
+        data = pkg_resources.resource_stream("jupyterlab_dosbox",
+                os.path.join("bundles", fn)).read()
+        f.writestr(os.path.join(".jsdos", fn), data)
+_b.seek(0)
+DEFAULT_ZIP = _b.read()
 
 class RouteHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
@@ -13,15 +27,13 @@ class RouteHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         # This needs to be implemented
-        self.finish(pkg_resources.resource_stream("jupyterlab_dosbox",
-                os.path.join("bundles", "a1.jsdos")).read())
+        self.finish(DEFAULT_ZIP)
 
 class RouteHandlerChanged(APIHandler):
     @tornado.web.authenticated
     def get(self):
         # This needs to be implemented
-        self.finish(pkg_resources.resource_stream("jupyterlab_dosbox",
-                os.path.join("bundles", "a1.jsdos.changed")).read())
+        self.finish(DEFAULT_ZIP)
 
 class RouteWasmHandler(APIHandler):
     @tornado.web.authenticated

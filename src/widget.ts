@@ -8,7 +8,7 @@ import { MODULE_NAME, MODULE_VERSION } from './version';
 import { extractLayersConfig, LayersConfig } from './layerinterface';
 
 import { CommandInterface, Emulators } from 'emulators';
-import { DosFactoryType, DosInstance } from 'emulators-ui/dist/types/js-dos';
+import { DosInstance } from 'emulators-ui/dist/types/js-dos';
 
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
@@ -26,10 +26,6 @@ const _emulatorsUi = await import('emulators-ui');
 // And for the purposes of debugging, we want this to be dosDirect.
 const workerType = 'dosDirect';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-//const _wworker = await import('emulators/dist/wworker');
-
-declare const Dos: DosFactoryType;
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
 
@@ -103,7 +99,8 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     let memoryCopy: Uint8Array;
     switch (command.name) {
       case 'sendKeys':
-        (command.args as Array<[string, boolean]>).forEach((element: [string, boolean]) => {
+        (command.args as Array<[string, boolean]>).forEach(
+          (element: [string, boolean]) => {
             const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
             //this.ci.simulateKeyPress(keyCode);
             this.ci.sendKeyEvent(keyCode, element[1]);
@@ -133,6 +130,9 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
         ].forEach(v => (registers[v] = dosModule.memoryContents[v]));
         this.set('_last_registerdump', registers);
         this.save();
+        break;
+      case 'debug':
+        (window as any).dosboxWidget = this;
         break;
       default:
         break;

@@ -33,7 +33,9 @@ declare const Dos: DosFactoryType;
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
 
-function serializeArray(array: Uint8ClampedArray | null): DataView | null {
+function serializeArray(
+  array: Uint8ClampedArray | Uint8Array | null
+): DataView | null {
   return new DataView(array.buffer.slice(0));
 }
 
@@ -101,16 +103,16 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     let memoryCopy: Uint8Array;
     switch (command.name) {
       case 'sendKeys':
-        (command.args as Array<string>).forEach((element: string) => {
-          const keyCode = this.emulatorsUi.controls.namedKeyCodes[element];
-          //this.ci.simulateKeyPress(keyCode);
-          this.ci.sendKeyEvent(keyCode, true);
-          this.ci.sendKeyEvent(keyCode, false);
-        });
+        (command.args as Array<[string, boolean]>).forEach((element: [string, boolean]) => {
+            const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
+            //this.ci.simulateKeyPress(keyCode);
+            this.ci.sendKeyEvent(keyCode, element[1]);
+          }
+        );
         break;
       case 'screenshot':
         screenshot = await this.ci.screenshot();
-        this.set('_last_screenshot', screenshot.data);
+        this.set('_last_screenshot', screenshot.data.slice(0));
         this.save();
         break;
       case 'coreDump':

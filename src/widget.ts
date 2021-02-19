@@ -23,7 +23,8 @@ const _emulatorsUi = await import('emulators-ui');
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 // Having this be 'janus' causes some issues we can't work around
-const workerType = 'dosWorker';
+// And for the purposes of debugging, we want this to be dosDirect.
+const workerType = 'dosDirect';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 //const _wworker = await import('emulators/dist/wworker');
@@ -32,16 +33,29 @@ declare const Dos: DosFactoryType;
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
 
-function serializeArray(array: Uint8ClampedArray): DataView {
+function serializeArray(array: Uint8ClampedArray | null): DataView | null {
   return new DataView(array.buffer.slice(0));
 }
 
-function deserializeArray(dataview: DataView | null): Uint8ClampedArray | null {
+function deserializeArrayUint8Clamped(
+  dataview: DataView | null
+): Uint8ClampedArray | null {
   if (dataview === null) {
     return null;
   }
 
   return new Uint8ClampedArray(dataview.buffer);
+}
+
+const EmptyUint8Array = new Uint8Array();
+
+// If I could figure out generics with constructors, I wouldn't
+// need to do this!
+function deserializeArrayUint8(dataview: DataView | null): Uint8Array | null {
+  if (dataview === null) {
+    return null;
+  }
+  return new Uint8Array(dataview.buffer);
 }
 
 export class DosboxRuntimeModel extends DOMWidgetModel {
@@ -50,6 +64,8 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
       ...super.defaults(),
       running: false,
       activelayer: 'default',
+      _last_registerdump: undefined,
+      _last_coredump: undefined,
       _last_screenshot: undefined,
       _model_name: DosboxRuntimeModel.model_name,
       _model_module: DosboxRuntimeModel.model_module,
@@ -80,21 +96,40 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   private async onCommand(command: any, buffers: any) {
     // Process keyboard commands first
     let screenshot: ImageData;
+    let registers: { [name: string]: any };
+    let dosModule: any;
+    let memoryCopy: Uint8Array;
     switch (command.name) {
       case 'sendKeys':
         (command.args as Array<string>).forEach((element: string) => {
           const keyCode = this.emulatorsUi.controls.namedKeyCodes[element];
-          console.log('Sending ...', element, keyCode);
           //this.ci.simulateKeyPress(keyCode);
           this.ci.sendKeyEvent(keyCode, true);
           this.ci.sendKeyEvent(keyCode, false);
         });
         break;
       case 'screenshot':
-        console.log('Received a screenshot request');
         screenshot = await this.ci.screenshot();
-        console.log(screenshot);
         this.set('_last_screenshot', screenshot.data);
+        this.save();
+        break;
+      case 'coreDump':
+        dosModule = (this.ci as any).module;
+        await dosModule._dumpMemory(command.args[0] ? true : false);
+        registers = {};
+        memoryCopy = command.args[0]
+          ? dosModule.memoryContents['memoryCopy']
+          : EmptyUint8Array;
+        this.set('_last_coredump', memoryCopy);
+        [
+          'memBase',
+          'ip',
+          'flags',
+          'registers',
+          'segments_physical',
+          'segments_values'
+        ].forEach(v => (registers[v] = dosModule.memoryContents[v]));
+        this.set('_last_registerdump', registers);
         this.save();
         break;
       default:
@@ -106,7 +141,11 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     ...DOMWidgetModel.serializers,
     _last_screenshot: {
       serialize: serializeArray,
-      deserialize: deserializeArray
+      deserialize: deserializeArrayUint8Clamped
+    },
+    _last_coredump: {
+      serialize: serializeArray,
+      deserialize: deserializeArrayUint8
     }
   };
 
@@ -172,6 +211,8 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
   dos: DosInstance;
   ci: CommandInterface;
   _last_screenshot: Uint8ClampedArray;
+  _last_registerdump: any;
+  _last_coredump: Uint8Array;
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
   running: boolean;
@@ -206,9 +247,6 @@ export class DosboxRuntimeView extends DOMWidgetView {
   async connectLayers(): Promise<void> {
     (window as any).dosboxWidget = this;
     this.ci = await this.model.ciPromise;
-    console.log(this.model.ciPromise);
-    console.log(this.model);
-    console.log(this.ci);
     this.layers = this.model.emulatorsUi.dom.layers(this.div);
 
     // This is where we will connect our layers. It's possible this will cause
@@ -243,7 +281,6 @@ export class DosboxRuntimeView extends DOMWidgetView {
     }
     emulatorsUi.controls.keyboard(this.layers, this.ci, layer.mapper);
     emulatorsUi.controls.mouse(this.layers, this.ci);
-    console.log('Set the controls');
   }
 
   layerNames: string[] = null;

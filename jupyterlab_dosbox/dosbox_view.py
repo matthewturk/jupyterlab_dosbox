@@ -1,3 +1,4 @@
+from ipython_genutils.py3compat import buffer_to_bytes
 from ._version import __version__
 import ipywidgets
 import traitlets
@@ -16,6 +17,9 @@ class DosboxModel(ipywidgets.DOMWidget):
     _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
     activelayer = traitlets.Unicode('default').tag(sync=True)
     _last_screenshot = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
+    _last_coredump = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
+    _last_registerdump = traitlets.Dict(allow_none=True).tag(sync=True)
+
 
     def send_line(self, line):
         command = {'name': 'sendKeys', 'args': ["KBD_%s" % _.lower() for _ in
@@ -24,6 +28,9 @@ class DosboxModel(ipywidgets.DOMWidget):
 
     def screenshot(self):
         self.send({'name': 'screenshot', 'args': []})
+
+    def coredump(self, full_memory = True):
+        self.send({'name': 'coreDump', 'args': [full_memory]})
     
     @property
     def last_screenshot(self):

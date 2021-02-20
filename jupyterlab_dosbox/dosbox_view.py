@@ -44,7 +44,10 @@ _KEYS = {
     "?": ["shift", "slash"]
 }
 
-
+def _make_zipfile(filenames):
+    # TODO: Implement this, making sure it makes directory entries
+    # explicitly
+    pass
 
 @ipywidgets.register
 class DosboxModel(ipywidgets.DOMWidget):
@@ -102,6 +105,10 @@ class DosboxModel(ipywidgets.DOMWidget):
                 keycodes.append(("KBD_%s" % c.lower(), False))
         self.send({'name': 'sendKeys', 'args': keycodes})
                 
+
+    def send_files(self, filenames):
+        buffer = _make_zipfile(filenames)
+        self.send({'name': 'sendZipfile', 'args': []}, [buffer])
 
     def screenshot(self):
         self.send({'name': 'screenshot', 'args': []})

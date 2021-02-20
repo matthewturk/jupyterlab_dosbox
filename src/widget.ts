@@ -97,6 +97,8 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     let registers: { [name: string]: any };
     let dosModule: any;
     let memoryCopy: Uint8Array;
+    let bytes: Uint8Array;
+      let bytesView: DataView;
     switch (command.name) {
       case 'sendKeys':
         (command.args as Array<[string, boolean]>).forEach(
@@ -130,6 +132,17 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
         ].forEach(v => (registers[v] = dosModule.memoryContents[v]));
         this.set('_last_registerdump', registers);
         this.save();
+        break;
+      case 'sendZipfile':
+        dosModule = (this.ci as any).module;
+        for (bytesView of buffers) {
+            bytes = new Uint8Array(bytesView.buffer);
+          const buffer = dosModule._malloc(bytes.length);
+            console.log("Allocated", bytes.length);
+          dosModule.HEAPU8.set(bytes, buffer);
+          const retcode = dosModule._zip_to_fs(buffer, bytes.length);
+          dosModule._free(buffer);
+        }
         break;
       case 'debug':
         (window as any).dosboxWidget = this;
@@ -247,7 +260,6 @@ export class DosboxRuntimeView extends DOMWidgetView {
   }
 
   async connectLayers(): Promise<void> {
-    (window as any).dosboxWidget = this;
     this.ci = await this.model.ciPromise;
     this.layers = this.model.emulatorsUi.dom.layers(this.div);
 

@@ -108,12 +108,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
           count += 1;
           const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
           //this.ci.simulateKeyPress(keyCode);
-          this.ci.sendKeyEvent(keyCode, element[1]);
-          if (count > 20) {
-            count = 0;
-            // Sleep for 1 ms every 20 keycodes
-            await new Promise(r => setTimeout(r, 1));
-          }
+          this.ci.addKey(keyCode, element[1], count);
         }
         break;
       case 'screenshot':

@@ -98,13 +98,14 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     let dosModule: any;
     let memoryCopy: Uint8Array;
     let bytes: Uint8Array;
-      let bytesView: DataView;
+    let bytesView: DataView;
     switch (command.name) {
       case 'sendKeys':
         (command.args as Array<[string, boolean]>).forEach(
           (element: [string, boolean]) => {
             const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
             //this.ci.simulateKeyPress(keyCode);
+            console.log('Sending', keyCode, element[1]);
             this.ci.sendKeyEvent(keyCode, element[1]);
           }
         );
@@ -135,12 +136,12 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
         break;
       case 'sendZipfile':
         dosModule = (this.ci as any).module;
+        dosModule.FS.chdir('/home/web_user');
         for (bytesView of buffers) {
-            bytes = new Uint8Array(bytesView.buffer);
+          bytes = new Uint8Array(bytesView.buffer);
           const buffer = dosModule._malloc(bytes.length);
-            console.log("Allocated", bytes.length);
           dosModule.HEAPU8.set(bytes, buffer);
-          const retcode = dosModule._zip_to_fs(buffer, bytes.length);
+          dosModule._zip_to_fs(buffer, bytes.length);
           dosModule._free(buffer);
         }
         break;

@@ -7,6 +7,7 @@ import pkg_resources
 import os
 import io
 import zipfile
+from .utils import make_zipfile
 
 _default_components = ['dosbox.conf', 'jsdos.json']
 
@@ -37,13 +38,12 @@ class RouteHandler(APIHandler):
     @tornado.web.authenticated
     def get(self, *args, **kwargs):
         # This needs to be implemented
-        self.finish(_generate_zip())
-
-class RouteHandlerChanged(APIHandler):
-    @tornado.web.authenticated
-    def get(self, suffix):
-        # This needs to be implemented
-        self.finish(_generate_zip())
+        filenames = {}
+        for fn in _default_components:
+            data = pkg_resources.resource_stream("jupyterlab_dosbox",
+                    os.path.join("bundles", fn)).read()
+            filenames[os.path.join(".jsdos", fn)] = data
+        self.finish(make_zipfile(filenames))
 
 class RouteWasmHandler(APIHandler):
     @tornado.web.authenticated

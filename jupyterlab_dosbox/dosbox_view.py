@@ -1,53 +1,12 @@
 from ipython_genutils.py3compat import buffer_to_bytes
 from ._version import __version__
+from .utils import KEYCODES, make_zipfile
 import ipywidgets
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
 import numpy as np
-import string
 
 EXTENSION_VERSION = __version__
-
-_KEYS = {
-    "\t": "tab",
-    " ": "space",
-    #public KBD_grave = 96;
-    "-": "minus",
-    "=": "equals",
-    "\\": "backslash",
-    "[": "leftbracket",
-    "]": "rightbracket",
-    ";": "semicolon",
-    "'": "quote",
-    "." : "period",
-    "," : "comma",
-    "/" : "slash",
-    "!" : ["shift", "1"],
-    "@":  ["shift", "2"],
-    "#": ["shift", "3"],
-    "$": ["shift", "4"],
-    "%": ["shift", "5"],
-    "^": ["shift", "6"],
-    "&": ["shift", "7"],
-    "*": ["shift", "8"],
-    "(": ["shift", "9"],
-    ")": ["shift", "0"],
-    "_": ["shift", "minus"],
-    "+": ["shift", "equals"],
-    "{": ["shift", "leftbracket"],
-    "}": ["shift", "rightbracket"],
-    "|": ["shift", "backslash"],
-    ":": ["shift", "semicolon"],
-    "\"": ["shift", "quote"],
-    "<": ["shift", "comma"],
-    ">": ["shift", "period"],
-    "?": ["shift", "slash"]
-}
-
-def _make_zipfile(filenames):
-    # TODO: Implement this, making sure it makes directory entries
-    # explicitly
-    pass
 
 @ipywidgets.register
 class DosboxModel(ipywidgets.DOMWidget):
@@ -85,30 +44,25 @@ class DosboxModel(ipywidgets.DOMWidget):
                     keycodes.append(("KBD_shift", False))
                 keycodes.append(("KBD_enter", True))
                 keycodes.append(("KBD_enter", False))
-            elif c in _KEYS:
-                v = _KEYS[c]
-                if isinstance(v, str): v = [v]
-                for _ in v:
-                    keycodes.append(("KBD_%s" % _, True))
-                for _ in v[::-1]:
-                    keycodes.append(("KBD_%s" % _, False))
-            if c in string.ascii_letters + string.digits:
-                if c.isupper():
-                    if not is_shifted:
-                        is_shifted = True
-                        keycodes.append(("KBD_shift", True))
-                elif c.islower():
-                    if is_shifted:
-                        is_shifted = False
-                        keycodes.append(("KBD_shift", False))
-                keycodes.append(("KBD_%s" % c.lower(), True))
-                keycodes.append(("KBD_%s" % c.lower(), False))
+            elif c in KEYCODES:
+                upper, key = KEYCODES[c]
+                if upper and not is_shifted:
+                    is_shifted = True
+                    keycodes.append(("KBD_shift", True))
+                elif not upper and is_shifted:
+                    is_shifted = False
+                    keycodes.append(("KBD_shift", False))
+                keycodes.append(("KBD_%s" % key.lower(), True))
+                keycodes.append(("KBD_%s" % key.lower(), False))
         self.send({'name': 'sendKeys', 'args': keycodes})
-                
 
     def send_files(self, filenames):
-        buffer = _make_zipfile(filenames)
+        buffer = make_zipfile(filenames)
+        open("temp.zip", "wb").write(buffer)
         self.send({'name': 'sendZipfile', 'args': []}, [buffer])
+        self.send({'name': 'sendKeys',
+            'args': [ ("KBD_leftctrl", True), ("KBD_f4", True),
+                      ("KBD_f4", False), ("KBD_leftctrl", False) ]}) 
 
     def screenshot(self):
         self.send({'name': 'screenshot', 'args': []})

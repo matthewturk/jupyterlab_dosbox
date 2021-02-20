@@ -99,16 +99,22 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     let memoryCopy: Uint8Array;
     let bytes: Uint8Array;
     let bytesView: DataView;
+    let keyCodes: Array<[string, boolean]>;
+    let count = 0;
     switch (command.name) {
       case 'sendKeys':
-        (command.args as Array<[string, boolean]>).forEach(
-          (element: [string, boolean]) => {
-            const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
-            //this.ci.simulateKeyPress(keyCode);
-            console.log('Sending', keyCode, element[1]);
-            this.ci.sendKeyEvent(keyCode, element[1]);
+        keyCodes = command.args;
+        for (const element of keyCodes) {
+          count += 1;
+          const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
+          //this.ci.simulateKeyPress(keyCode);
+          this.ci.sendKeyEvent(keyCode, element[1]);
+          if (count > 20) {
+            count = 0;
+            // Sleep for 1 ms every 20 keycodes
+            await new Promise(r => setTimeout(r, 1));
           }
-        );
+        }
         break;
       case 'screenshot':
         screenshot = await this.ci.screenshot();
@@ -144,6 +150,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
           dosModule._zip_to_fs(buffer, bytes.length);
           dosModule._free(buffer);
         }
+        dosModule._rescanFilesystem();
         break;
       case 'debug':
         (window as any).dosboxWidget = this;

@@ -32,26 +32,26 @@ class DosboxModel(ipywidgets.DOMWidget):
     def send_command(self, command_str):
         # We need to parse each component of the command string
         # Not super-duper happy with this, but it'll do for now.
-        if command_str[-1] != "\n":
+        if not command_str.endswith("\n"):
             command_str = command_str + "\n"
         keycodes = []
-        # Only support shift for now
+        # Only support leftshift for now
         is_shifted = False
         for c in command_str:
             if c == "\n":
                 if is_shifted:
                     is_shifted = False
-                    keycodes.append(("KBD_shift", False))
+                    keycodes.append(("KBD_leftshift", False))
                 keycodes.append(("KBD_enter", True))
                 keycodes.append(("KBD_enter", False))
             elif c in KEYCODES:
                 upper, key = KEYCODES[c]
                 if upper and not is_shifted:
                     is_shifted = True
-                    keycodes.append(("KBD_shift", True))
+                    keycodes.append(("KBD_leftshift", True))
                 elif not upper and is_shifted:
                     is_shifted = False
-                    keycodes.append(("KBD_shift", False))
+                    keycodes.append(("KBD_leftshift", False))
                 keycodes.append(("KBD_%s" % key.lower(), True))
                 keycodes.append(("KBD_%s" % key.lower(), False))
         self.send({'name': 'sendKeys', 'args': keycodes})

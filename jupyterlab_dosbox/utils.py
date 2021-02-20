@@ -40,10 +40,10 @@ KEYCODES = {
 }
 
 KEYCODES.update(
-    [True, _.lower()] for _ in string.ascii_uppercase
+    [_, (True, _.lower())] for _ in string.ascii_uppercase
 )
 KEYCODES.update(
-    [False, _] for _ in string.ascii_lowercase
+    [_, (False, _)] for _ in string.ascii_lowercase
 )
 
 def make_zipfile(filenames, prefix_directory = ""):

@@ -18,7 +18,7 @@
     "strict": true,
     "strictNullChecks": false,
     "target": "es2017",
-    "types": ["node"],
+    "types": ["node", "emscripten"],
     "skipLibCheck": true
   },
   "include": ["src/*.ts"]

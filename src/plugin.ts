@@ -4,6 +4,8 @@ import {
 } from '@jupyterlab/application';
 
 import { IJupyterWidgetRegistry } from '@jupyter-widgets/base';
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
@@ -14,10 +16,14 @@ import * as dosboxWidgetExports from './widget';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 const EXTENSION_ID = MODULE_NAME + ':plugin';
 
+import { EmscriptenDrive } from './contents';
+
 async function activate(
   app: JupyterFrontEnd,
   palette: ICommandPalette,
-  registry: IJupyterWidgetRegistry
+  registry: IJupyterWidgetRegistry,
+  manager: IDocumentManager,
+  factory: IFileBrowserFactory
 ): Promise<void> {
   const content = new DosboxWidget();
   const widget = new MainAreaWidget({ content });
@@ -44,10 +50,18 @@ async function activate(
       content.update();
       // Activate the widget
       app.shell.activateById(widget.id);
+      content.startDos().then(() => {
+        const drive = new EmscriptenDrive((content.ci as any).module.FS);
+        manager.services.contents.addDrive(drive);
+        const browser = factory.createFileBrowser('EMFS' + content.id, {
+          driveName: drive.name
+        });
+        browser.title.caption = 'EmscriptenFS';
+        app.shell.add(browser, 'left', { rank: 101 });
+      });
     }
   });
   // Add the command to the palette.
-
   palette.addItem({ command: commandRun, category: 'Tutorial' });
 
   /*Dos(document.getElementById("jsdos"), {
@@ -65,7 +79,12 @@ async function activate(
 const dosboxPlugin: JupyterFrontEndPlugin<void> = {
   id: EXTENSION_ID,
   autoStart: true,
-  requires: [ICommandPalette, IJupyterWidgetRegistry],
+  requires: [
+    ICommandPalette,
+    IJupyterWidgetRegistry,
+    IDocumentManager,
+    IFileBrowserFactory
+  ],
   activate: activate
 };
 

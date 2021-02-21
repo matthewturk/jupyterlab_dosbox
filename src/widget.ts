@@ -108,7 +108,7 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
           count += 1;
           const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
           //this.ci.simulateKeyPress(keyCode);
-          this.ci.addKey(keyCode, element[1], count);
+          (this.ci as any).addKey(keyCode, element[1], count);
         }
         break;
       case 'screenshot':

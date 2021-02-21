@@ -35,9 +35,9 @@ export class DosboxWidget extends Widget {
       'bundles',
       'a1.jsdos'
     );
-    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosWorker' });
+    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosDirect' });
     this.ci = await this.dos.run(requestUrl);
-    this.ci.screenshot();
+    this.dosInitialized = true;
   }
 
   readonly dosDiv: HTMLDivElement;

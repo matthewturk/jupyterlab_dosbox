@@ -2,8 +2,13 @@ import { UUID } from '@lumino/coreutils';
 import {
   DOMWidgetModel,
   ISerializers,
-  DOMWidgetView
+  DOMWidgetView,
+  ManagerBase
 } from '@jupyter-widgets/base';
+
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+
 import { MODULE_NAME, MODULE_VERSION } from './version';
 import { extractLayersConfig, LayersConfig } from './layerinterface';
 
@@ -15,8 +20,7 @@ import { ServerConnection } from '@jupyterlab/services';
 import { EmulatorsUi } from 'emulators-ui';
 import { Layers } from 'emulators-ui/dist/types/dom/layers';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-
-//import { EmulatorsUi } from 'emulators-ui';
+import { EmscriptenDrive } from './contents';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _emulators = await import('emulators');
@@ -30,6 +34,12 @@ const workerType = 'dosDirect';
 
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
+
+export interface IAppInfo {
+  app: JupyterFrontEnd;
+  manager: IDocumentManager;
+  factory: IFileBrowserFactory;
+}
 
 function serializeArray(
   array: Uint8ClampedArray | Uint8Array | null
@@ -64,6 +74,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       ...super.defaults(),
       running: false,
       activelayer: 'default',
+      _shouldPopout: false,
       _last_registerdump: undefined,
       _last_coredump: undefined,
       _last_screenshot: undefined,
@@ -78,6 +89,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async initialize(attributes: any, options: any): Promise<void> {
+    this.on('msg:custom', this.onCommand.bind(this));
     super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;
     const settings = ServerConnection.makeSettings();
@@ -89,15 +101,31 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     );
     this.ci = await this.run(requestUrl);
     this.set('running', true);
-    this.on('msg:custom', this.onCommand.bind(this));
+    if (this.get('_shouldPopout')) {
+      await this.popOut();
+    } else {
+      this.once('change:_shouldPopout', this.popOut);
+    }
+  }
 
+  async popOut(): Promise<void> {
     // Automatically add a new view to the shell
+    const appInfo = this.getAppInfo();
     const view = await this.widget_manager.create_view(this, {});
     view.pWidget.id = this.id + '-shell-widget';
     view.pWidget.addClass('dosbox-widget');
     view.pWidget.title.label = 'DosBox Instance';
     view.pWidget.title.closable = true;
-    this.getApp().shell.add(view.pWidget, 'main', { activate: false });
+    appInfo.app.shell.add(view.pWidget, 'main', { activate: false });
+
+    // Let's also add a file browser
+    const drive = new EmscriptenDrive((this.ci as any).module.FS);
+    appInfo.manager.services.contents.addDrive(drive);
+    const browser = appInfo.factory.createFileBrowser('EMFS-' + this.id, {
+      driveName: drive.name
+    });
+    browser.title.caption = 'DosBox FS';
+    appInfo.app.shell.add(browser, 'left', { rank: 101 });
   }
 
   // Inspired by the ipycanvas commands
@@ -160,6 +188,10 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       case 'debug':
         (window as any).dosboxWidget = this;
         break;
+      case 'popOut':
+        this.set('_shouldPopout', true);
+        this.save();
+        break;
       default:
         break;
     }
@@ -185,6 +217,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     const changesUrl = optionalChangesUrl || bundleUrl + '.changed';
     const emulatorsUi = this.emulatorsUi;
     //this.layers.setLoadingMessage('Downloading bundle ...');
+    console.log('Starting download');
     const bundlePromise = emulatorsUi.network.resolveBundle(bundleUrl, {
       onprogress: (percent: number) =>
         // This should be replaced with a jupyter specific loading message, or something
@@ -236,13 +269,14 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     return;
   }
 
-  public abstract getApp(): JupyterFrontEnd;
+  public abstract getAppInfo(): IAppInfo;
 
   dos: DosInstance;
   ci: CommandInterface;
   _last_screenshot: Uint8ClampedArray;
   _last_registerdump: any;
   _last_coredump: Uint8Array;
+  _shouldPopout = false;
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
   running: boolean;
@@ -275,6 +309,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
   }
 
   async connectLayers(): Promise<void> {
+    console.log('Connecting layers');
     this.ci = await this.model.ciPromise;
     this.layers = this.model.emulatorsUi.dom.layers(this.div);
 

@@ -70,11 +70,14 @@ class DosboxModel(ipywidgets.DOMWidget):
     def coredump(self, full_memory = True):
         self.send({'name': 'coreDump', 'args': [full_memory]})
 
+    def pop_out(self):
+        self.send({'name': 'popOut', 'args': []})
+    
     @property
     def last_coredump(self):
         if self._last_coredump is None or len(self._last_coredump) == 0: return None
         return np.frombuffer(self._last_coredump, dtype="u1")
-    
+
     @property
     def last_screenshot(self):
         if self._last_screenshot is None or len(self._last_screenshot) == 0: return None

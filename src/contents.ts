@@ -59,20 +59,16 @@ export class EmscriptenDrive implements Contents.IDrive {
     localPath: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
-    localPath = '/' + PathExt.normalize(localPath);
-    const model = this.pathToContentsModel(localPath);
+    //console.log(`Requesting "${localPath}"`);
+    const model = this.pathToContentsModel('', localPath);
     if (model.type === 'directory') {
       // Fill with the contents
-      model.content = this.fs.readdir(localPath) as Array<string>;
+      model.content = this.fs.readdir('/' + localPath) as Array<string>;
       model.content = model.content
-        .map((element: string) =>
-          this.pathToContentsModel(
-            '/' + PathExt.normalize(localPath + '/' + element)
-          )
-        )
+        .map((element: string) => this.pathToContentsModel(localPath, element))
         .filter((element: any) => element !== undefined);
     } else if (model.type === 'file') {
-      const v = this.fs.readFile(localPath, { encoding: 'utf8' });
+      const v = this.fs.readFile('/' + localPath, { encoding: 'utf8' });
       model.content = v;
       model.format = 'text';
     }
@@ -91,7 +87,7 @@ export class EmscriptenDrive implements Contents.IDrive {
   rename(oldLocalPath: string, newLocalPath: string): Promise<Contents.IModel> {
     this.fs.rename(oldLocalPath, newLocalPath);
     return new Promise<Contents.IModel>(() =>
-      this.pathToContentsModel(newLocalPath)
+      this.pathToContentsModel('', newLocalPath)
     );
   }
   save(
@@ -136,19 +132,30 @@ export class EmscriptenDrive implements Contents.IDrive {
 
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
 
-  pathToContentsModel(path: string): EmscriptenFileModel {
+  pathToContentsModel(localPath: string, fn: string): EmscriptenFileModel {
+    if (fn === '.') {
+      return null;
+    }
     let node: EMFSNode;
     let stat: EMFSStat;
-    console.log('Trying ', path);
+    let name: string;
+    const path = PathExt.join(localPath, fn);
+    //console.log(`Trying "${path}"`);
     try {
-      node = this.fs.lookupPath(path, {}).node as EMFSNode;
-      stat = this.fs.stat(path);
+      node = this.fs.lookupPath('/' + path, {}).node as EMFSNode;
+      stat = this.fs.stat('/' + path);
     } catch (e) {
       console.log(e);
       return;
     }
+    //console.log(node, stat);
+    if (fn === '.' || fn === '..') {
+      name = fn;
+    } else {
+      name = node.name;
+    }
     const newModel: EmscriptenFileModel = {
-      name: node.name,
+      name: name,
       path: path,
       type: this.fs.isDir(stat.mode) ? 'directory' : 'file',
       writable: true, // always true

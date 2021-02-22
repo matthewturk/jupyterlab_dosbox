@@ -71,13 +71,6 @@ async function activate(
   // Add the command to the palette.
   palette.addItem({ command: commandRun, category: 'Tutorial' });
 
-  /*Dos(document.getElementById("jsdos"), {
-    wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js"
-  }).ready((fs, main) => {
-    fs.extract("https://js-dos.com/6.22/current/test/digger.zip").then(() => {
-      main(["-c", "DIGGER.COM"])
-    });
-  });*/
 }
 
 /**

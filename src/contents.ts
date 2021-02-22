@@ -66,7 +66,8 @@ export class EmscriptenDrive implements Contents.IDrive {
       model.content = this.fs.readdir('/' + localPath) as Array<string>;
       model.content = model.content
         .map((element: string) => this.pathToContentsModel(localPath, element))
-        .filter((element: any) => element !== undefined);
+        .filter((element: any) => element !== null);
+      console.log(model.content);
     } else if (model.type === 'file') {
       const v = this.fs.readFile('/' + localPath, { encoding: 'utf8' });
       model.content = v;
@@ -136,26 +137,18 @@ export class EmscriptenDrive implements Contents.IDrive {
     if (fn === '.') {
       return null;
     }
-    let node: EMFSNode;
     let stat: EMFSStat;
-    let name: string;
     const path = PathExt.join(localPath, fn);
-    //console.log(`Trying "${path}"`);
+    console.log(`Trying "${path}"`);
     try {
-      node = this.fs.lookupPath('/' + path, {}).node as EMFSNode;
       stat = this.fs.stat('/' + path);
     } catch (e) {
       console.log(e);
       return;
     }
     //console.log(node, stat);
-    if (fn === '.' || fn === '..') {
-      name = fn;
-    } else {
-      name = node.name;
-    }
     const newModel: EmscriptenFileModel = {
-      name: name,
+      name: fn,
       path: path,
       type: this.fs.isDir(stat.mode) ? 'directory' : 'file',
       writable: true, // always true

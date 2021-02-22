@@ -58,7 +58,10 @@ async function activate(
       // Activate the widget
       app.shell.activateById(widget.id);
       content.startDos().then(() => {
-        const drive = new EmscriptenDrive((content.ci as any).module.FS);
+        const drive = new EmscriptenDrive(
+          (content.ci as any).module.FS,
+          (content.ci as any).module._rescanFilesystem
+        );
         manager.services.contents.addDrive(drive);
         const browser = factory.createFileBrowser('EMFS' + content.id, {
           driveName: drive.name
@@ -70,7 +73,6 @@ async function activate(
   });
   // Add the command to the palette.
   palette.addItem({ command: commandRun, category: 'Tutorial' });
-
 }
 
 /**

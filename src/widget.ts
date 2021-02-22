@@ -119,7 +119,10 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     appInfo.app.shell.add(view.pWidget, 'main', { activate: false });
 
     // Let's also add a file browser
-    const drive = new EmscriptenDrive((this.ci as any).module.FS);
+    const drive = new EmscriptenDrive(
+      (this.ci as any).module.FS,
+      (this.ci as any).module._rescanFilesystem
+    );
     appInfo.manager.services.contents.addDrive(drive);
     const browser = appInfo.factory.createFileBrowser('EMFS-' + this.id, {
       driveName: drive.name

@@ -139,7 +139,7 @@ export class EmscriptenDrive implements Contents.IDrive {
     }
     let stat: EMFSStat;
     const path = PathExt.join(localPath, fn);
-    console.log(`Trying "${path}"`);
+    //console.log(`Trying "${path}"`);
     try {
       stat = this.fs.stat('/' + path);
     } catch (e) {

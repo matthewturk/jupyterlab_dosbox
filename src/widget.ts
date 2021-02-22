@@ -14,6 +14,8 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import { EmulatorsUi } from 'emulators-ui';
 import { Layers } from 'emulators-ui/dist/types/dom/layers';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+
 //import { EmulatorsUi } from 'emulators-ui';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -56,7 +58,7 @@ function deserializeArrayUint8(dataview: DataView | null): Uint8Array | null {
   return new Uint8Array(dataview.buffer);
 }
 
-export class DosboxRuntimeModel extends DOMWidgetModel {
+export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   defaults(): any {
     return {
       ...super.defaults(),
@@ -65,12 +67,12 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
       _last_registerdump: undefined,
       _last_coredump: undefined,
       _last_screenshot: undefined,
-      _model_name: DosboxRuntimeModel.model_name,
-      _model_module: DosboxRuntimeModel.model_module,
-      _model_module_version: DosboxRuntimeModel.model_module_version,
-      _view_name: DosboxRuntimeModel.view_name,
-      _view_module: DosboxRuntimeModel.view_module,
-      _view_module_version: DosboxRuntimeModel.view_module_version
+      _model_name: DosboxRuntimeModelAbs.model_name,
+      _model_module: DosboxRuntimeModelAbs.model_module,
+      _model_module_version: DosboxRuntimeModelAbs.model_module_version,
+      _view_name: DosboxRuntimeModelAbs.view_name,
+      _view_module: DosboxRuntimeModelAbs.view_module,
+      _view_module_version: DosboxRuntimeModelAbs.view_module_version
     };
   }
 
@@ -88,6 +90,14 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     this.ci = await this.run(requestUrl);
     this.set('running', true);
     this.on('msg:custom', this.onCommand.bind(this));
+
+    // Automatically add a new view to the shell
+    const view = await this.widget_manager.create_view(this, {});
+    view.pWidget.id = this.id + '-shell-widget';
+    view.pWidget.addClass('dosbox-widget');
+    view.pWidget.title.label = 'DosBox Instance';
+    view.pWidget.title.closable = true;
+    this.getApp().shell.add(view.pWidget, 'main', { activate: false });
   }
 
   // Inspired by the ipycanvas commands
@@ -226,6 +236,8 @@ export class DosboxRuntimeModel extends DOMWidgetModel {
     return;
   }
 
+  public abstract getApp(): JupyterFrontEnd;
+
   dos: DosInstance;
   ci: CommandInterface;
   _last_screenshot: Uint8ClampedArray;
@@ -302,7 +314,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
 
   layerNames: string[] = null;
   layerConfig: LayersConfig = null;
-  model: DosboxRuntimeModel;
+  model: DosboxRuntimeModelAbs;
   div: HTMLDivElement;
   divId: string;
   layers: Layers;

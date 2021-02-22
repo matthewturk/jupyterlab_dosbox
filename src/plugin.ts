@@ -11,7 +11,7 @@ import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { DosboxWidget } from './standalone';
 
-import * as dosboxWidgetExports from './widget';
+import { DosboxRuntimeModelAbs, DosboxRuntimeView } from './widget';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
 const EXTENSION_ID = MODULE_NAME + ':plugin';
@@ -32,12 +32,19 @@ async function activate(
   widget.title.closable = true;
 
   console.log('Registered ' + MODULE_NAME + ' ' + MODULE_VERSION);
+  const DosboxRuntimeModel = class extends DosboxRuntimeModelAbs {
+    getApp(): JupyterFrontEnd {
+      return app;
+    }
+  };
   registry.registerWidget({
     name: MODULE_NAME,
     version: MODULE_VERSION,
-    exports: dosboxWidgetExports
+    exports: {
+      DosboxRuntimeModel,
+      DosboxRuntimeView
+    }
   });
-  console.log(dosboxWidgetExports);
 
   const commandRun = 'dosbox:open';
   app.commands.addCommand(commandRun, {

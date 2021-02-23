@@ -7,6 +7,16 @@ import pkg_resources
 import os
 import io
 import zipfile
+
+import pooch
+
+_wasm_filenames = {
+    'wdirect.wasm': ('https://unpkg.com/emulators@0.0.55/dist/wdirect.wasm',
+            '11bff62af123a3e693ceef43bc47ba7ba7aeea53a28f4a3c9772954b4d0d982a'),
+    'wdirect.js': ('https://unpkg.com/emulators@0.0.55/dist/wdirect.js',
+            '6c94981b57b0c8ffa8d410f134a6342a2ad3420319c1cb6738b1c445e1756959')
+}
+
 from .utils import make_zipfile
 
 _default_components = ['dosbox.conf', 'jsdos.json']
@@ -48,8 +58,12 @@ class RouteHandler(APIHandler):
 class RouteWasmHandler(APIHandler):
     @tornado.web.authenticated
     def get(self, mod, extension):
-        self.finish(pkg_resources.resource_stream("jupyterlab_dosbox",
-                os.path.join("bundles", mod + "." + extension)).read())
+        fn = mod + "." + extension
+        if fn not in _wasm_filenames:
+            self.send_error(404)
+        rpath = pkg_resources.resource_filename("jupyterlab_dosbox", "bundles")
+        lfn = pooch.retrieve(*_wasm_filenames[fn], path = rpath)
+        self.finish(open(lfn, "rb").read())
 
 
 def setup_handlers(web_app):

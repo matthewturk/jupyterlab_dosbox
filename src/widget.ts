@@ -89,6 +89,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async initialize(attributes: any, options: any): Promise<void> {
+    emulators.pathPrefix = '/jupyterlab_dosbox/wasm/';
     this.on('msg:custom', this.onCommand.bind(this));
     super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;

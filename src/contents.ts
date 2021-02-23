@@ -64,8 +64,10 @@ export class EmscriptenDrive implements Contents.IDrive {
   constructor(fs: typeof FS, rescan: rescanFunction) {
     this.fs = fs;
     this.rescan = rescan;
+    this.uName = UUID.uuid4();
   }
 
+  uName: string;
   rescan: rescanFunction;
   serverSettings: ServerConnection.ISettings;
   modelDBFactory?: ModelDB.IFactory;
@@ -147,6 +149,7 @@ export class EmscriptenDrive implements Contents.IDrive {
       const s = this.fs.open('/' + localPath, 'w');
       this.fs.write(s, buffer, 0, buffer.length);
       this.fs.close(s);
+      this.rescan();
       return this.pathToContentsModel(
         PathExt.dirname(localPath),
         PathExt.basename(localPath)
@@ -261,8 +264,8 @@ export class EmscriptenDrive implements Contents.IDrive {
 
   fs: typeof FS;
 
-  get name(): 'EmscriptenFS' {
-    return 'EmscriptenFS';
+  get name(): string {
+    return 'EmscriptenFS-' + this.uName;
   }
 
   get fileChanged(): ISignal<this, Contents.IChangedArgs> {

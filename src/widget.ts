@@ -97,7 +97,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       settings.baseUrl,
       'jupyterlab_dosbox', // API Namespace
       'bundles',
-      'a1.jsdos'
+      'null_bundle.jsdos'
     );
     this.ci = await this.run(requestUrl);
     this.set('running', true);

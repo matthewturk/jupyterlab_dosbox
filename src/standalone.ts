@@ -33,7 +33,7 @@ export class DosboxWidget extends Widget {
       settings.baseUrl,
       'jupyterlab_dosbox',
       'bundles',
-      'a1.jsdos'
+      'null_bundle.jsdos'
     );
     this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosDirect' });
     this.ci = await this.dos.run(requestUrl);

@@ -3,21 +3,8 @@ import { Signal, ISignal } from '@lumino/signaling';
 import { ModelDB } from '@jupyterlab/observables';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { PathExt } from '@jupyterlab/coreutils';
-import { uuid } from '@jupyter-widgets/base';
+import { base64ToBuffer, bufferToBase64 } from '@jupyter-widgets/base';
 //import { ENOENT } from 'constants';
-
-//https://stackoverflow.com/questions/6965107/converting-between-strings-and-arraybuffers
-async function readBinaryStringFromArrayBuffer(
-  arrayBuffer: Uint8Array
-): Promise<string> {
-  const reader = new FileReader();
-  reader.readAsDataURL(new Blob([arrayBuffer]));
-  await new Promise((resolve, reject) => {
-    reader.onload = resolve;
-    reader.onerror = event => reject('Failed to convert');
-  });
-  return reader.result as string;
-}
 
 type EmscriptenFileModel = {
   name: string;
@@ -87,11 +74,9 @@ export class EmscriptenDrive implements Contents.IDrive {
     localPath: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
-    console.log(`Requesting "${localPath}"`);
     const model = await this.pathToContentsModel('', localPath, {
       getContents: true
     });
-    console.log('OK, looks like we have ', model.type);
     if (model.type === 'directory') {
       // Fill with the contents
       model.content = this.fs.readdir('/' + localPath) as Array<string>;
@@ -129,7 +114,6 @@ export class EmscriptenDrive implements Contents.IDrive {
     if (options.type === 'directory') {
       this.fs.mkdir(newPath);
     } else {
-      console.log(`Writing empty to ${newPath}`);
       this.fs.writeFile(newPath, '');
     }
     this.rescan();
@@ -147,24 +131,34 @@ export class EmscriptenDrive implements Contents.IDrive {
     return new Promise<void>(() => null);
   }
   rename(oldLocalPath: string, newLocalPath: string): Promise<Contents.IModel> {
-    console.log(`Renaming ${oldLocalPath} to ${newLocalPath}`);
     this.fs.rename('/' + oldLocalPath, '/' + newLocalPath);
     this.rescan();
     return this.pathToContentsModel('', newLocalPath);
   }
-  save(
+  async save(
     localPath: string,
     options?: Partial<Contents.IModel>
   ): Promise<Contents.IModel> {
     let content: string;
-    console.log(options);
     if (options.format === 'base64') {
-      content = atob(options.content);
-    } else if (options.format === 'json') {
+      const buffer: Uint8Array = new Uint8Array(
+        base64ToBuffer(options.content)
+      );
+      const s = this.fs.open('/' + localPath, 'w');
+      this.fs.write(s, buffer, 0, buffer.length);
+      this.fs.close(s);
+      return this.pathToContentsModel(
+        PathExt.dirname(localPath),
+        PathExt.basename(localPath)
+      );
+      // We have to use write() manually here, which requires some allocations.
+    }
+    if (options.format === 'json') {
       content = JSON.stringify(options.content);
     } else {
       content = options.content;
     }
+    // We can't use writeFile for binary data
     //console.log('writing', '/' + localPath);
     this.fs.writeFile('/' + localPath, content);
     //console.log('wrote', '/' + localPath);
@@ -301,25 +295,23 @@ export class EmscriptenDrive implements Contents.IDrive {
     let mimeType = 'text/text-plain';
     //console.log(node, stat);
     if (options.getContents && this.fs.isFile(stat.mode)) {
-      fileContent = await readBinaryStringFromArrayBuffer(
+      fileContent = bufferToBase64(
         this.fs.readFile('/' + path, { encoding: 'binary' })
       );
-      console.log('File content', stat.size, fileContent.length);
       switch (PathExt.normalizeExtension(PathExt.extname(fn))) {
         case '.json':
-          content = JSON.parse(fileContent);
+          content = JSON.parse(atob(fileContent));
           mimeType = 'application/json';
           contentFormat = 'json';
           break;
         case '.txt':
-          content = fileContent;
+          content = atob(fileContent);
           mimeType = 'text/text-plain';
           contentFormat = 'text';
           break;
         default:
-          content = btoa(fileContent);
-          console.log('new content', content.length);
-          mimeType = 'image/png';
+          content = fileContent;
+          mimeType = 'application/octet-stream';
           contentFormat = 'base64';
           break;
       }

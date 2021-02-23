@@ -52,5 +52,5 @@ jobs:
         jlpm run eslint:check
         python -m pip install .
 
-        jupyter labextension list 2>&1 | grep -ie "jupyterlab_dosbox.*OK"
+        jupyter labextension list 2>&1 | grep -ie "jupyterlab-dosbox.*OK"
         python -m jupyterlab.browser_check

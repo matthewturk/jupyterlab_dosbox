@@ -7,6 +7,8 @@ Run DosBox in jupyterlab.  Built on [js-dos](https://js-dos/) and uses the js-do
 ## Requirements
 
 * JupyterLab >= 3.0
+* [Pooch](https://fatiando.org/pooch/)
+* numpy, for memory access
 
 ## Install
 

@@ -313,7 +313,6 @@ export class DosboxRuntimeView extends DOMWidgetView {
   }
 
   async connectLayers(): Promise<void> {
-    console.log('Connecting layers');
     this.ci = await this.model.ciPromise;
     this.layers = this.model.emulatorsUi.dom.layers(this.div);
 
@@ -334,8 +333,19 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // Make all the different layers invisible or hidden
     (this.layers as any).clickToStart.style.display = 'none';
     this.layers.hideLoadingLayer();
+    const domToKeyCode = emulatorsUi.controls.domToKeyCode;
+    this.layers.canvas.setAttribute('tabindex', '1');
+    this.layers.canvas.addEventListener('keydown', e => {
+      (this.layers as any).onKeyDown(domToKeyCode((e as any).keyCode));
+      e.stopPropagation();
+    });
+    this.layers.canvas.addEventListener('keyup', e => {
+      (this.layers as any).onKeyUp(domToKeyCode((e as any).keyCode));
+      e.stopPropagation();
+    });
     this.layers.video.style.display = 'none';
     this.layers.loading.style.display = 'none';
+    this.changeLayer();
   }
 
   changeLayer(): void {

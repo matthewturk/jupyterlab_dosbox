@@ -16,7 +16,6 @@ Run DosBox in jupyterlab.  Built on [js-dos](https://js-dos/) and uses the js-do
 pip install jupyterlab_dosbox
 ```
 
-
 ## Contributing
 
 ### Development install

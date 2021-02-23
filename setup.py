@@ -74,7 +74,8 @@ setup_args = dict(
         "jupyterlab~=3.0",
         "pooch>=1.3.0",
         "numpy>=1.13",
-        "tornado>=6.0"
+        "tornado>=6.0",
+        "ipywidgets>=7.0.0"
     ],
     zip_safe=False,
     include_package_data=True,

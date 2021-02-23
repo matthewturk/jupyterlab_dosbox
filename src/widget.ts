@@ -337,10 +337,12 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.layers.canvas.setAttribute('tabindex', '1');
     this.layers.canvas.addEventListener('keydown', e => {
       (this.layers as any).onKeyDown(domToKeyCode((e as any).keyCode));
+      e.preventDefault();
       e.stopPropagation();
     });
     this.layers.canvas.addEventListener('keyup', e => {
       (this.layers as any).onKeyUp(domToKeyCode((e as any).keyCode));
+      e.preventDefault();
       e.stopPropagation();
     });
     this.layers.video.style.display = 'none';

@@ -1,6 +1,6 @@
 # jupyterlab_dosbox
 
-![Github Actions Status](https://github.com/matthewturk/jupyterlab_dosbox.git/workflows/Build/badge.svg)
+![Github Actions Status](https://github.com/matthewturk/jupyterlab_dosbox/workflows/Build/badge.svg)
 
 Run DosBox in jupyterlab.  Built on [js-dos](https://js-dos/) and uses the js-dos 7.xx modules.
 

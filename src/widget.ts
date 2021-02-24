@@ -35,6 +35,11 @@ const workerType = 'dosDirect';
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
 
+interface ILayerEvents {
+  onKeyDown(keyCode: number): void;
+  onKeyUp(keyCode: number): void;
+}
+
 export interface IAppInfo {
   app: JupyterFrontEnd;
   manager: IDocumentManager;
@@ -333,21 +338,37 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // Make all the different layers invisible or hidden
     (this.layers as any).clickToStart.style.display = 'none';
     this.layers.hideLoadingLayer();
-    const domToKeyCode = emulatorsUi.controls.domToKeyCode;
     this.layers.canvas.setAttribute('tabindex', '1');
-    this.layers.canvas.addEventListener('keydown', e => {
-      (this.layers as any).onKeyDown(domToKeyCode((e as any).keyCode));
-      e.preventDefault();
-      e.stopPropagation();
-    });
-    this.layers.canvas.addEventListener('keyup', e => {
-      (this.layers as any).onKeyUp(domToKeyCode((e as any).keyCode));
-      e.preventDefault();
-      e.stopPropagation();
-    });
     this.layers.video.style.display = 'none';
     this.layers.loading.style.display = 'none';
     this.changeLayer();
+    this.resetEventListeners();
+  }
+
+  private resetEventListeners(): void {
+    // At present, we don't call this. I'm not entirely sure why, but right now
+    // it is not working to correctly snag the data we want. I'll follow up with
+    // it in the future.
+
+    const eventLayers = (this.layers as unknown) as ILayerEvents;
+    const domToKeyCode = emulatorsUi.controls.domToKeyCode;
+    // We can't remove the listeners directly because they are anonymous and gone.
+    // We'll do the next best thing and ask the layers to ignore them.
+    this.layerKeyHandlers = [eventLayers.onKeyDown, eventLayers.onKeyUp];
+    this.layers.setOnKeyDown(() => null);
+    this.layers.setOnKeyUp(() => null);
+    // The sadness of making these anonymous and unretrievable functions has not
+    // escaped me, by the way.
+    this.layers.canvas.addEventListener('keydown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.layerKeyHandlers[0](domToKeyCode((e as any).keyCode));
+    });
+    this.layers.canvas.addEventListener('keyup', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.layerKeyHandlers[1](domToKeyCode((e as any).keyCode));
+    });
   }
 
   changeLayer(): void {
@@ -370,4 +391,5 @@ export class DosboxRuntimeView extends DOMWidgetView {
   divId: string;
   layers: Layers;
   ci: CommandInterface;
+  layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
 }

@@ -58,11 +58,8 @@ class DosboxModel(ipywidgets.DOMWidget):
 
     def send_files(self, filenames):
         buffer = make_zipfile(filenames)
-        open("temp.zip", "wb").write(buffer)
+        print(f"Sending buffer of length {len(buffer):0.3e} bytes")
         self.send({'name': 'sendZipfile', 'args': []}, [buffer])
-        self.send({'name': 'sendKeys',
-            'args': [ ("KBD_leftctrl", True), ("KBD_f4", True),
-                      ("KBD_f4", False), ("KBD_leftctrl", False) ]}) 
 
     def screenshot(self):
         self.send({'name': 'screenshot', 'args': []})

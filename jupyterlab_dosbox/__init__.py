@@ -36,3 +36,4 @@ def _load_jupyter_server_extension(server_app):
     server_app.log.info("Registered HelloWorld extension at URL path /jupyterlab_dosbox")
 
 from .dosbox_view import DosboxModel
+from .utils import recompress_zipfile

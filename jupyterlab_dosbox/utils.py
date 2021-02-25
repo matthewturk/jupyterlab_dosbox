@@ -78,6 +78,18 @@ def make_zipfile(filenames, prefix_directory = ""):
     b.seek(0)
     return b.read()
 
+def recompress_zipfile(input_filename, prefix_directory = ""):
+    """
+    This accepts an input filename of a zip file that needs to be converted
+    to something that is just ZIP_STORED, and it returns the bytes of the new
+    version.  It does keep it all in memory, though!
+    """
+    output_bytes = {}
+    with zipfile.ZipFile(input_filename, "r") as f:
+        for fn in f.namelist():
+            output_bytes[fn] = f.read(fn)
+    return make_zipfile(output_bytes, prefix_directory)
+
 def test_zipfile():
     zf = make_zipfile(
         {'hi/there.txt': 'this is text',

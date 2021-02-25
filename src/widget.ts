@@ -2,8 +2,7 @@ import { UUID } from '@lumino/coreutils';
 import {
   DOMWidgetModel,
   ISerializers,
-  DOMWidgetView,
-  ManagerBase
+  DOMWidgetView
 } from '@jupyter-widgets/base';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -359,16 +358,18 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.layers.setOnKeyUp(() => null);
     // The sadness of making these anonymous and unretrievable functions has not
     // escaped me, by the way.
-    this.layers.canvas.addEventListener('keydown', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.layerKeyHandlers[0](domToKeyCode((e as any).keyCode));
-    });
-    this.layers.canvas.addEventListener('keyup', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.layerKeyHandlers[1](domToKeyCode((e as any).keyCode));
-    });
+    if (this.addCanvasListeners === true) {
+      this.layers.canvas.addEventListener('keydown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.layerKeyHandlers[0](domToKeyCode((e as any).keyCode));
+      });
+      this.layers.canvas.addEventListener('keyup', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.layerKeyHandlers[1](domToKeyCode((e as any).keyCode));
+      });
+    }
   }
 
   changeLayer(): void {
@@ -392,4 +393,5 @@ export class DosboxRuntimeView extends DOMWidgetView {
   layers: Layers;
   ci: CommandInterface;
   layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
+  addCanvasListeners = false;
 }

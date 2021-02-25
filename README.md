@@ -2,7 +2,28 @@
 
 ![Github Actions Status](https://github.com/matthewturk/jupyterlab_dosbox/workflows/Build/badge.svg)
 
+![Dosbox in Jupyterlab](https://i.imgur.com/GW5RNOh.png)
+
 Run DosBox in jupyterlab.  Built on [js-dos](https://js-dos/) and uses the js-dos 7.xx modules.
+
+This exposes a pretty simple interface to a WASM-compiled DosBox instance.  You can get screenshots, coredumps, and you can send commands.  It will download some wasm assets off the web using pooch.
+
+### As of right now, the DosBox instance does **not** listen to key and mouse events!
+
+The examples in the `examples` directory show how to get a coredump, take a screenshot, and send zip files.
+
+ * [Taking a screenshot](examples/screenshot.ipynb)
+ * [Sending a zip and taking a coredump](examples/dosbox_coredump.ipynb)
+
+There are a bunch of rough edges!  But, you can browse the files in your filesystem with a file browser panel on the left, and you can inspect the memory.
+
+Some things that are on the roadmap:
+
+ * Better interaction with the instance, including trapping and sending appropriate browser events
+ * Saving and restoring file system and memory instances (i.e., machine state)
+ * Better interface for inspecting core dumps
+ * Sound and video capture
+ * All-around polish on the interface (like, why aren't there any icons?!)
 
 ## Requirements
 

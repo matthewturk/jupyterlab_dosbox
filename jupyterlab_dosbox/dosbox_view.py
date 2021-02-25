@@ -61,6 +61,11 @@ class DosboxModel(ipywidgets.DOMWidget):
         print(f"Sending buffer of length {len(buffer):0.3e} bytes")
         self.send({'name': 'sendZipfile', 'args': []}, [buffer])
 
+    def send_zip(self, filename):
+        buffer = open(filename, "rb").read()
+        print(f"Sending buffer of length {len(buffer):0.3e} bytes")
+        self.send({'name': 'sendZipfile', 'args': []}, [buffer])
+
     def screenshot(self):
         self.send({'name': 'screenshot', 'args': []})
 

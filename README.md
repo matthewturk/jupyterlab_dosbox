@@ -4,6 +4,9 @@
 
 ![Dosbox in Jupyterlab](https://i.imgur.com/GW5RNOh.png)
 
+<!-- Binder disabled until I figure out server extensions on it -->
+<!-- [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/matthewturk/jupyterlab_dosbox/main?urlpath=lab/tree/examples%2Fdosbox_coredump.ipynb) -->
+
 Run DosBox in jupyterlab.  Built on [js-dos](https://js-dos/) and uses the js-dos 7.xx modules.
 
 This exposes a pretty simple interface to a WASM-compiled DosBox instance.  You can get screenshots, coredumps, and you can send commands.  It will download some wasm assets off the web using pooch.

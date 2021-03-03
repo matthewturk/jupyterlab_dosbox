@@ -136,6 +136,20 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     appInfo.app.shell.add(browser, 'left', { rank: 101 });
   }
 
+  private async processQueue() {
+    if (this._currentlyProcessing) {
+      return;
+    }
+    this._currentlyProcessing = true;
+    const startTime = Date.now();
+    while (this._commandQueue.length > 0) {
+      const element = this._commandQueue.shift();
+      const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
+      (this.ci as any).addKey(keyCode, element[1], startTime);
+    }
+    this._currentlyProcessing = false;
+  }
+
   // Inspired by the ipycanvas commands
   private async onCommand(command: any, buffers: any) {
     // Process keyboard commands first
@@ -146,16 +160,12 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     let bytes: Uint8Array;
     let bytesView: DataView;
     let keyCodes: Array<[string, boolean]>;
-    let count = 0;
     switch (command.name) {
       case 'sendKeys':
         keyCodes = command.args;
-        for (const element of keyCodes) {
-          count += 1;
-          const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
-          //this.ci.simulateKeyPress(keyCode);
-          (this.ci as any).addKey(keyCode, element[1], count);
-        }
+        // is this safe?
+        this._commandQueue = this._commandQueue.concat(keyCodes);
+        return this.processQueue();
         break;
       case 'screenshot':
         screenshot = await this.ci.screenshot();
@@ -293,6 +303,8 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   ciPromise?: Promise<CommandInterface>;
   running: boolean;
   activelayer = 'default';
+  _currentlyProcessing = false;
+  _commandQueue: Array<[string, boolean]> = [];
 
   static model_name = 'DosboxRuntimeModel';
   static model_module = MODULE_NAME;

@@ -1,4 +1,9 @@
 .jsdos {
     max-width: 640px;
-    max-height: 400px;
+    max-height: 480px;
+}
+
+.jsdos > canvas {
+    width: 640px;
+    height: 400px;
 }

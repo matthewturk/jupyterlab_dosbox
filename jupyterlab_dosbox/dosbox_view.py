@@ -17,6 +17,7 @@ class DosboxModel(ipywidgets.DOMWidget):
     _view_module = traitlets.Unicode('jupyterlab-dosbox').tag(sync=True)
     _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
     activelayer = traitlets.Unicode('default').tag(sync=True)
+    paused = traitlets.Bool(False).tag(sync=True)
     _last_screenshot = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
     _last_coredump = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
     _last_registerdump = traitlets.Dict(allow_none=True).tag(sync=True)

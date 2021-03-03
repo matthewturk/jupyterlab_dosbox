@@ -78,6 +78,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       ...super.defaults(),
       running: false,
       activelayer: 'default',
+      paused: false,
       _shouldPopout: false,
       _last_registerdump: undefined,
       _last_coredump: undefined,
@@ -95,6 +96,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   async initialize(attributes: any, options: any): Promise<void> {
     emulators.pathPrefix = '/jupyterlab_dosbox/wasm/';
     this.on('msg:custom', this.onCommand.bind(this));
+    this.on('change:paused', this.pauseChanged.bind(this));
     super.initialize(attributes, options);
     this.emulatorsUi = emulatorsUi;
     const settings = ServerConnection.makeSettings();
@@ -142,12 +144,28 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     }
     this._currentlyProcessing = true;
     const startTime = Date.now();
+    let count = 0;
     while (this._commandQueue.length > 0) {
       const element = this._commandQueue.shift();
       const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
-      (this.ci as any).addKey(keyCode, element[1], startTime);
+      (this.ci as any).addKey(
+        keyCode,
+        element[1],
+        startTime + Math.floor(count / 10)
+      );
+      count += 1;
     }
     this._currentlyProcessing = false;
+  }
+
+  pauseChanged(): void {
+    this.paused = this.get('paused');
+    const dosModule = (this.ci as any).module;
+    dosModule._pauseExecution(this.paused);
+    if (!this.paused) {
+      console.log('Processing queued keys.');
+      this.processQueue();
+    }
   }
 
   // Inspired by the ipycanvas commands
@@ -165,7 +183,12 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         keyCodes = command.args;
         // is this safe?
         this._commandQueue = this._commandQueue.concat(keyCodes);
-        return this.processQueue();
+        if (this.get('paused')) {
+          console.log('Queuing keys for deferred execution');
+          return;
+        } else {
+          return this.processQueue();
+        }
         break;
       case 'screenshot':
         screenshot = await this.ci.screenshot();
@@ -205,10 +228,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         break;
       case 'debug':
         (window as any).dosboxWidget = this;
-        break;
-      case 'pause':
-        dosModule = (this.ci as any).module;
-        dosModule._toggleDebugger();
         break;
       case 'popOut':
         this.set('_shouldPopout', true);
@@ -305,6 +324,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   activelayer = 'default';
   _currentlyProcessing = false;
   _commandQueue: Array<[string, boolean]> = [];
+  paused: false;
 
   static model_name = 'DosboxRuntimeModel';
   static model_module = MODULE_NAME;
@@ -323,7 +343,10 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.el.appendChild(this.div);
     this.setupEventListeners();
     if (this.model.get('running')) {
-      this.connectLayers();
+      this.displayed.then(v => {
+        this.connectLayers();
+        return v;
+      });
     }
   }
 
@@ -358,6 +381,19 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.layers.loading.style.display = 'none';
     this.changeLayer();
     this.resetEventListeners();
+    this.pausedBox = document.createElement('input');
+    this.pausedBox.setAttribute('type', 'checkbox');
+    this.pausedBox.setAttribute('name', 'paused');
+    this.pausedBox.checked = this.model.get('paused');
+    this.el.appendChild(this.pausedBox);
+    const label = document.createElement('label');
+    label.setAttribute('for', 'paused');
+    label.innerHTML = 'Paused';
+    this.el.appendChild(label);
+    this.pausedBox.addEventListener('change', e => {
+      this.model.set('paused', this.pausedBox.checked);
+      this.model.save();
+    });
   }
 
   private resetEventListeners(): void {
@@ -410,4 +446,5 @@ export class DosboxRuntimeView extends DOMWidgetView {
   ci: CommandInterface;
   layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
   addCanvasListeners = false;
+  pausedBox: HTMLInputElement;
 }

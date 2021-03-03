@@ -64,7 +64,7 @@ class RouteWasmHandler(APIHandler):
         # Check for override
         override_path = os.path.join(pkg_resources.resource_filename("jupyterlab_dosbox",
                                      "debug_bundles"), fn)
-        if os.path.isfile(override_path):
+        if os.path.exists(override_path):
             self.finish(open(override_path, "rb").read())
             return
         rpath = pkg_resources.resource_filename("jupyterlab_dosbox", "bundles")

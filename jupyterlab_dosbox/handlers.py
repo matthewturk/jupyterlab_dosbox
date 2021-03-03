@@ -61,6 +61,12 @@ class RouteWasmHandler(APIHandler):
         fn = mod + "." + extension
         if fn not in _wasm_filenames:
             self.send_error(404)
+        # Check for override
+        override_path = os.path.join(pkg_resources.resource_filename("jupyterlab_dosbox",
+                                     "debug_bundles"), fn)
+        if os.path.isfile(override_path):
+            self.finish(open(override_path, "rb").read())
+            return
         rpath = pkg_resources.resource_filename("jupyterlab_dosbox", "bundles")
         lfn = pooch.retrieve(*_wasm_filenames[fn], path = rpath)
         self.finish(open(lfn, "rb").read())

@@ -1,0 +1,21 @@
+# a mybinder.org-ready environment for demoing jupyterlab_dosbox
+# this environment may also be used locally on Linux/MacOS/Windows, e.g.
+#
+#   conda env update --file binder/environment.yml
+#   conda activate myextension-demo
+#
+name: jupyterlab_dosbox
+
+channels:
+  - conda-forge
+
+dependencies:
+  - ipywidgets >=7,<8
+  - jupyter-packaging >=0.7.9,<0.8
+  - jupyterlab =3
+  - nodejs >=12,!=13.*,<15
+  - numpy
+  - pip
+  - python >=3.8
+  - wheel
+  - pooch

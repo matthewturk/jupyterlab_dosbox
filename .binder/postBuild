@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eux
+
+jlpm --ignore-optional
+
+python -m pip install -vv \
+    --install-option="--skip-npm" \
+    --no-deps \
+    --no-build-isolation \
+    --ignore-installed \
+    -e .
+
+jupyter labextension develop --overwrite .
+
+jupyter labextension list

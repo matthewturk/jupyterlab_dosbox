@@ -17,6 +17,7 @@ import { MODULE_NAME, MODULE_VERSION } from './version';
 const EXTENSION_ID = MODULE_NAME + ':plugin';
 
 import { EmscriptenDrive } from './contents';
+import { dosIcon } from './icon';
 
 async function activate(
   app: JupyterFrontEnd,
@@ -67,6 +68,7 @@ async function activate(
           driveName: drive.name
         });
         browser.title.caption = 'EmscriptenFS';
+        browser.title.icon = dosIcon;
         app.shell.add(browser, 'left', { rank: 101 });
       });
     }

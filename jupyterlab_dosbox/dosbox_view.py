@@ -1,6 +1,6 @@
 from ipython_genutils.py3compat import buffer_to_bytes
 from ._version import __version__
-from .utils import KEYCODES, make_zipfile
+from .utils import KEYCODES, make_zipfile, yield_for_change
 import ipywidgets
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
@@ -70,7 +70,12 @@ class DosboxModel(ipywidgets.DOMWidget):
         self.send({'name': 'screenshot', 'args': []})
 
     def coredump(self, full_memory = True):
-        self.send({'name': 'coreDump', 'args': [full_memory]})
+        @yield_for_change(self, '_last_coredump')
+        def f():
+            self.send({'name': 'coreDump', 'args': [full_memory]})
+            c = yield
+        f()
+        return self.last_coredump
 
     def pop_out(self):
         self.send({'name': 'popOut', 'args': []})

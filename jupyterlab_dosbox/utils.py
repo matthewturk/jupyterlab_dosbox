@@ -3,6 +3,7 @@ import string
 import zipfile
 import io
 import functools
+import asyncio
 
 KEYCODES = {
     "\t": [False, "tab"],
@@ -91,28 +92,15 @@ def recompress_zipfile(input_filename, prefix_directory = ""):
             output_bytes[fn] = f.read(fn)
     return make_zipfile(output_bytes, prefix_directory)
 
-# https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Asynchronous.html
-def yield_for_change(widget, attribute):
-    """Pause a generator to wait for a widget change event.
-
-    This is a decorator for a generator function which pauses the generator on yield
-    until the given widget attribute changes. The new value of the attribute is
-    sent to the generator and is the value of the yield.
-    """
-    def f(iterator):
-        @functools.wraps(iterator)
-        def inner():
-            i = iterator()
-            def next_i(change):
-                try:
-                    i.send(change.new)
-                except StopIteration as e:
-                    widget.unobserve(next_i, attribute)
-            widget.observe(next_i, attribute)
-            # start the generator
-            next(i)
-        return inner
-    return f
+# Inspired by https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Asynchronous.html
+def wait_for_change(widget, value):
+    future = asyncio.Future()
+    def getvalue(change):
+        # make the new value available
+        future.set_result(change.new)
+        widget.unobserve(getvalue, value)
+    widget.observe(getvalue, value)
+    return future
 
 def test_zipfile():
     zf = make_zipfile(

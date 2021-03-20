@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="16pc"
+   height="10pc"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   version="1.0"
+   inkscape:export-filename="C:\Users\Eduardo\Desktop\bannerlinux.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   sodipodi:docname="msdos.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   viewBox="0 0 768 480">
+  <defs
+     id="defs4">
+    <clipPath
+       id="clipPath9784"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path9786"
+         d="M 0,792 H 1224 V 0 H 0 Z" />
+    </clipPath>
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g id="layer1">
+    <g
+       clip-path="url(#clipPath9784)"
+       id="g9782"
+       transform="matrix(1.1463674,0,0,-1.1463674,-80.302458,741.44883)">
+      <g
+         transform="translate(78.1602,625.9063)"
+         id="g9788"
+         class="jp-icon3"
+         fill="#aa0000">
+        <path
+           class="jp-icon3"
+           id="path9790"
+           fill="#aa0000"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 4.7269228,1.1817307 132.6119972,3.326 c 25.746,0.552 49.556,-2.212 73.644,-10.523 v -4.7079997 c -20.764,-17.717 -35.71,-38.754 -49.281,-62.294 l -80.562997,-0.557 0.553,-228.404001 47.618997,-3.313 48.725,0.549 c 29.071,0.285 55.922,46.793 58.42,71.987 l 7.192,79.449 c 3.051,34.888 23.257,61.735001 54.543,76.138001 19.658,-32.948001 28.239,-69.489001 28.239,-107.969001 0,-120.993 -75.019,-197.398 -193.246,-192.97 l -128.4569972,4.981 z" />
+      </g>
+      <g
+         transform="translate(474.35732,631.23833)"
+         id="g9792"
+         class="jp-icon2"
+         fill="#800080">
+        <path
+           class="jp-icon2"
+           id="path9794"
+           fill="#800080"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 0,0 c -23.257,-17.163 -41.528,-36.265 -54.538,-62.284 -4.434,0.273 -8.863,0.55 -13.288,0.55 -46.793,0 -89.426,-40.97 -94.962,-86.929 l -12.183,-99.948 c -1.662,-14.122 -13.845,-28.515 -22.983,-38.758 -7.746,-8.304 -16.882,-9.966 -28.235,-9.966 h -1.384 c -14.398,33.215 -21.874,67.55 -21.874,103.819 0,113.785 63.677,204.04 182.173,204.04 C -44.017,10.524 -21.869,6.092 0,0" />
+      </g>
+      <g
+         transform="translate(329.56632,255.26763)"
+         id="g9796"
+         class="jp-icon2"
+         fill="#800080">
+        <path
+           class="jp-icon2"
+           id="path9798"
+           fill="#800080"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 0,0 38.482,36.277 17.44,24.911 29.067,-0.55 C 98.833,30.461 121.534,9.975 149.221,-7.745 129.009,-14.394 109.077,-17.712 88.034,-17.712 57.306,-17.712 28.509,-10.791 0,0" />
+      </g>
+      <g
+         transform="translate(417.87882,370.72273)"
+         id="g9800"
+         class="jp-icon1"
+         fill="#ffcc00">
+        <path
+           class="jp-icon1"
+           id="path9802"
+           fill="#ffcc00"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 0,0 73.918,-0.558 c 7.754,-47.339 39.039,-60.353 85.545,-60.353 29.075,0 72.539,6.921 72.539,44.019 0,19.381 -15.229,29.354 -30.728,37.934 l 3.872,73.916 c 58.972,-16.051 104.931,-38.199 104.931,-107.412 0,-81.957 -78.075,-116.56 -150.057,-116.56 -51.492,0 -118.214,14.953 -145.626,63.675 -8.58,14.951 -16.604,34.329 -16.604,51.77 0,1.388 0.27,2.769 0.548,4.151 z" />
+      </g>
+      <g
+         transform="translate(714.94572,514.95713)"
+         id="g9804"
+         class="jp-icon1"
+         fill="#ffcc00">
+        <path
+           class="jp-icon1"
+           id="path9806"
+           fill="#ffcc00"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 0,0 h -75.582 c -6.369,36.826 -37.103,55.095 -73.926,55.095 -25.185,0 -66.443,-11.063 -67.819,-42.631 -0.287,-1.665 0,-3.038 0.548,-4.434 l 14.951,-42.909 c 3.046,-8.86 3.602,-18.545 3.602,-27.961 0,-10.792 -1.387,-21.591 -2.767,-32.391 -53.157,14.951 -90.535,40.692 -90.535,100.498 0,80.565 65.059,118.22 139.256,118.22 C -69.772,123.487 -5.262,84.999 0,0" />
+      </g>
+      <g
+         transform="translate(582.32802,555.38823)"
+         id="g9808"
+         class="jp-icon2"
+         style="fill:#800080">
+        <path
+           class="jp-icon2"
+           id="path9810"
+           fill="#800080"
+           fill-opacity="1"
+           fill-rule="evenodd"
+           stroke="none"
+           d="m 0,0 c 19.933,-35.168 30.181,-73.376 30.181,-114.061 0,-42.365 -11.349,-81.953 -30.728,-119.052 -4.988,-0.275 -9.969,-0.824 -14.957,-0.824 -16.051,0 -55.09,10.791 -55.09,30.442 0,3.322 0.548,6.649 1.662,9.695 l 14.664,48.994 c 3.055,9.694 1.945,21.327 1.945,31.013 0,37.932 -17.166,61.743 -18.554,87.767 -0.827,18.264 33.78,26.851 45.967,26.851 8.301,0 16.603,0 24.91,-0.825" />
+      </g>
+      <g
+         transform="translate(126.8081,74.958)"
+         id="g9836" />
+    </g>
+  </g>
+</svg>

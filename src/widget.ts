@@ -9,7 +9,7 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
-import { extractLayersConfig, LayersConfig } from './layerinterface';
+import { extractLayersConfig, LayersConfig } from './jsdosinterfaces';
 
 import { CommandInterface, Emulators } from 'emulators';
 import { DosInstance } from 'emulators-ui/dist/types/js-dos';
@@ -20,6 +20,7 @@ import { EmulatorsUi } from 'emulators-ui';
 import { Layers } from 'emulators-ui/dist/types/dom/layers';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { EmscriptenDrive } from './contents';
+import { dosIcon } from './icon';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _emulators = await import('emulators');
@@ -135,6 +136,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       driveName: drive.name
     });
     browser.title.caption = 'DosBox FS';
+    browser.title.icon = dosIcon;
     appInfo.app.shell.add(browser, 'left', { rank: 101 });
   }
 

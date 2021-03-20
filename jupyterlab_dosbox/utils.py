@@ -2,6 +2,8 @@ import os
 import string
 import zipfile
 import io
+import functools
+import asyncio
 
 KEYCODES = {
     "\t": [False, "tab"],
@@ -89,6 +91,16 @@ def recompress_zipfile(input_filename, prefix_directory = ""):
         for fn in f.namelist():
             output_bytes[fn] = f.read(fn)
     return make_zipfile(output_bytes, prefix_directory)
+
+# Inspired by https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Asynchronous.html
+def wait_for_change(widget, value):
+    future = asyncio.Future()
+    def getvalue(change):
+        # make the new value available
+        future.set_result(change.new)
+        widget.unobserve(getvalue, value)
+    widget.observe(getvalue, value)
+    return future
 
 def test_zipfile():
     zf = make_zipfile(

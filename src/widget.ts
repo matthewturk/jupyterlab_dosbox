@@ -9,7 +9,7 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
-import { extractLayersConfig, LayersConfig } from './layerinterface';
+import { extractLayersConfig, LayersConfig } from './jsdosinterfaces';
 
 import { CommandInterface, Emulators } from 'emulators';
 import { DosInstance } from 'emulators-ui/dist/types/js-dos';

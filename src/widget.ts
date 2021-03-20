@@ -198,6 +198,10 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       case 'debug':
         (window as any).dosboxWidget = this;
         break;
+      case 'pause':
+        dosModule = (this.ci as any).module;
+        dosModule._toggleDebugger();
+        break;
       case 'popOut':
         this.set('_shouldPopout', true);
         this.save();

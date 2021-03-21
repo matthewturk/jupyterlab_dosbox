@@ -18,13 +18,40 @@ export interface IMemoryDump {
   ip: number;
   flags: number;
   registers: {
+    al: number;
+    ah: number;
     ax: number;
+    eax: number;
+
+    bl: number;
+    bh: number;
+    bx: number;
+    ebx: number;
+
+    cl: number;
+    ch: number;
     cx: number;
+    ecx: number;
+
+    dl: number;
+    dh: number;
     dx: number;
-    sp: number;
-    bp: number;
+    edx: number;
+
     si: number;
+    esi: number;
+
     di: number;
+    edi: number;
+
+    sp: number;
+    esp: number;
+
+    bp: number;
+    ebp: number;
+
+    ip: number;
+    eip: number;
   };
   segments_values: {
     es: number;

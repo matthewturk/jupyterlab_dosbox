@@ -165,7 +165,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     const dosModule = (this.ci as any).module;
     dosModule._pauseExecution(this.paused);
     if (!this.paused) {
-      console.log('Processing queued keys.');
       this.processQueue();
     }
   }
@@ -186,7 +185,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         // is this safe?
         this._commandQueue = this._commandQueue.concat(keyCodes);
         if (this.get('paused')) {
-          console.log('Queuing keys for deferred execution');
           return;
         } else {
           return this.processQueue();
@@ -260,12 +258,10 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     const changesUrl = optionalChangesUrl || bundleUrl + '.changed';
     const emulatorsUi = this.emulatorsUi;
     //this.layers.setLoadingMessage('Downloading bundle ...');
-    console.log('Starting download');
     const bundlePromise = emulatorsUi.network.resolveBundle(bundleUrl, {
       onprogress: (percent: number) =>
         // This should be replaced with a jupyter specific loading message, or something
         //this.layers.setLoadingMessage('Downloading bundle ' + percent + '%')
-        console.log('Downloading bundle ' + percent + '%')
     });
     try {
       const changesBundle = await emulatorsUi.persist
@@ -285,7 +281,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       //this.layers.setLoadingMessage('Starting...');
       ci = await this.ciPromise;
     } catch (e) {
-      console.log('Unexpected error occurred');
+      console.log('Unexpected error occurred', e);
       //this.layers.setLoadingMessage('Unexpected error occured...');
       //this.layers.notyf.error({
       //message: "Can't start emulator look browser logs for more info"

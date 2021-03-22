@@ -281,11 +281,11 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       //this.layers.setLoadingMessage('Starting...');
       ci = await this.ciPromise;
     } catch (e) {
-      console.log('Unexpected error occurred', e);
+      console.log('Unexpected error occurred');
       //this.layers.setLoadingMessage('Unexpected error occured...');
       //this.layers.notyf.error({
       //message: "Can't start emulator look browser logs for more info"
-      //});
+      });
       console.error(e);
       throw e;
     }

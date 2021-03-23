@@ -261,7 +261,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     const bundlePromise = emulatorsUi.network.resolveBundle(bundleUrl, {
       onprogress: (percent: number) =>
         // This should be replaced with a jupyter specific loading message, or something
-        //this.layers.setLoadingMessage('Downloading bundle ' + percent + '%')
+        console.log('Downloading bundle ' + percent + '%')
     });
     try {
       const changesBundle = await emulatorsUi.persist
@@ -285,7 +285,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       //this.layers.setLoadingMessage('Unexpected error occured...');
       //this.layers.notyf.error({
       //message: "Can't start emulator look browser logs for more info"
-      });
       console.error(e);
       throw e;
     }

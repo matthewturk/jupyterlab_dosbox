@@ -11,7 +11,13 @@ import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { DosboxWidget } from './standalone';
 
-import { DosboxRuntimeModelAbs, DosboxRuntimeView, IAppInfo } from './widget';
+import {
+  DosboxRuntimeModelAbs,
+  DosboxRuntimeView,
+  IAppInfo,
+  DosboxCoreDumpModel,
+  DosboxCoreDumpView
+} from './widget';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
 const EXTENSION_ID = MODULE_NAME + ':plugin';
@@ -43,7 +49,9 @@ async function activate(
     version: MODULE_VERSION,
     exports: {
       DosboxRuntimeModel,
-      DosboxRuntimeView
+      DosboxRuntimeView,
+      DosboxCoreDumpModel,
+      DosboxCoreDumpView
     }
   });
 

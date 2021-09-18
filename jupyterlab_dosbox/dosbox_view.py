@@ -9,6 +9,25 @@ EXTENSION_VERSION = __version__
 
 
 @ipywidgets.register
+class DosCoreDumpModel(ipywidgets.Widget):
+    _model_name = traitlets.Unicode("DosboxCoreDumpModel").tag(sync=True)
+    _model_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
+    _model_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
+    _view_name = traitlets.Unicode("DosboxCoreDumpView").tag(sync=True)
+    _view_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
+    _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
+
+    memBase = traitlets.CInt().tag(sync=True)
+    ip = traitlets.CInt().tag(sync=True)
+    flags = traitlets.CInt().tag(sync=True)
+    registers = traitlets.Dict().tag(sync=True)
+    segments_values = traitlets.Dict().tag(sync=True)
+    segments_physical = traitlets.Dict().tag(sync=True)
+    numPages = traitlets.CInt().tag(sync=True)
+    memoryCopy = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
+
+
+@ipywidgets.register
 class DosboxModel(ipywidgets.DOMWidget):
     _model_name = traitlets.Unicode("DosboxRuntimeModel").tag(sync=True)
     _model_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
@@ -21,10 +40,9 @@ class DosboxModel(ipywidgets.DOMWidget):
     _last_screenshot = traitlets.Bytes(allow_none=True).tag(
         sync=True, **bytes_serialization
     )
-    _last_coredump = traitlets.Bytes(allow_none=True).tag(
-        sync=True, **bytes_serialization
+    coredumps = traitlets.List(trait=traitlets.Instance(DosCoreDumpModel)).tag(
+        sync=True, **ipywidgets.widget_serialization
     )
-    _last_registerdump = traitlets.Dict(allow_none=True).tag(sync=True)
 
     def send_characters(self, characters):
         keycodes = []
@@ -76,7 +94,7 @@ class DosboxModel(ipywidgets.DOMWidget):
 
     def coredump(self):
         # This returns a future.  I know, I know.
-        v = wait_for_change(self, "_last_coredump")
+        v = wait_for_change(self, "coredumps")
         self.send({"name": "coreDump", "args": [True]})
         return v
 

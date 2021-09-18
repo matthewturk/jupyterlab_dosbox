@@ -1,5 +1,6 @@
 import { UUID } from '@lumino/coreutils';
 import {
+  ManagerBase,
   DOMWidgetModel,
   ISerializers,
   DOMWidgetView
@@ -9,7 +10,11 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
-import { extractLayersConfig, LayersConfig } from './jsdosinterfaces';
+import {
+  extractLayersConfig,
+  LayersConfig,
+  IMemoryDump
+} from './jsdosinterfaces';
 
 import { CommandInterface, Emulators } from 'emulators';
 import { DosInstance } from 'emulators-ui/dist/types/js-dos';
@@ -81,9 +86,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       activelayer: 'default',
       paused: false,
       _shouldPopout: false,
-      _last_registerdump: undefined,
-      _last_coredump: undefined,
-      _last_screenshot: undefined,
+      coredumps: [],
       _model_name: DosboxRuntimeModelAbs.model_name,
       _model_module: DosboxRuntimeModelAbs.model_module,
       _model_module_version: DosboxRuntimeModelAbs.model_module_version,
@@ -171,10 +174,11 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   }
 
   // Inspired by the ipycanvas commands
-  private async onCommand(command: any, buffers: any) {
+  async onCommand(command: any, buffers: any): Promise<void> {
     // Process keyboard commands first
+    const manager: ManagerBase<any> = this.widget_manager;
+    let newCoreDump: DosboxCoreDumpModel;
     let screenshot: ImageData;
-    let registers: { [name: string]: any };
     let dosModule: any;
     let memoryCopy: Uint8Array;
     let bytes: Uint8Array;
@@ -200,11 +204,17 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       case 'coreDump':
         dosModule = (this.ci as any).module;
         await dosModule._dumpMemory(command.args[0] ? true : false);
-        registers = {};
         memoryCopy = command.args[0]
           ? dosModule.memoryContents['memoryCopy']
           : EmptyUint8Array;
-        this.set('_last_coredump', memoryCopy);
+        newCoreDump = (await manager.new_widget({
+          model_name: DosboxCoreDumpModel.model_name,
+          model_module: DosboxCoreDumpModel.model_module,
+          model_module_version: DosboxCoreDumpModel.model_module_version,
+          view_name: DosboxCoreDumpModel.view_name,
+          view_module: DosboxCoreDumpModel.view_module,
+          view_module_version: DosboxCoreDumpModel.view_module_version
+        })) as DosboxCoreDumpModel;
         [
           'memBase',
           'ip',
@@ -212,9 +222,12 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
           'registers',
           'segments_physical',
           'segments_values'
-        ].forEach(v => (registers[v] = dosModule.memoryContents[v]));
-        this.set('_last_registerdump', registers);
-        this.save();
+        ].forEach(v => newCoreDump.set(v, dosModule.memoryContents[v]));
+        newCoreDump.set('memoryCopy', memoryCopy);
+        newCoreDump.save();
+        this.coredumps = this.get('coredumps').concat([newCoreDump]);
+        this.set('coredumps', this.coredumps);
+        this.save_changes();
         break;
       case 'sendZipfile':
         dosModule = (this.ci as any).module;
@@ -245,10 +258,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     _last_screenshot: {
       serialize: serializeArray,
       deserialize: deserializeArrayUint8Clamped
-    },
-    _last_coredump: {
-      serialize: serializeArray,
-      deserialize: deserializeArrayUint8
     }
   };
 
@@ -317,8 +326,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   dos: DosInstance;
   ci: CommandInterface;
   _last_screenshot: Uint8ClampedArray;
-  _last_registerdump: any;
-  _last_coredump: Uint8Array;
+  coredumps: DosboxCoreDumpModel[];
   _shouldPopout = false;
   emulatorsUi: EmulatorsUi;
   ciPromise?: Promise<CommandInterface>;
@@ -334,6 +342,66 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   static view_name = 'DosboxRuntimeView';
   static view_module = MODULE_NAME;
   static view_module_version = MODULE_VERSION;
+}
+
+export class DosboxCoreDumpModel extends DOMWidgetModel implements IMemoryDump {
+  defaults(): any {
+    return {
+      ...super.defaults(),
+      memBase: 0,
+      ip: 0,
+      flags: 0,
+      registers: {},
+      segments_values: {},
+      segments_physical: {},
+      numPages: 0,
+      memoryCopy: EmptyUint8Array,
+      _model_name: DosboxCoreDumpModel.model_name,
+      _model_module: DosboxCoreDumpModel.model_module,
+      _model_module_version: DosboxCoreDumpModel.model_module_version,
+      _view_name: DosboxCoreDumpModel.view_name,
+      _view_module: DosboxCoreDumpModel.view_module,
+      _view_module_version: DosboxCoreDumpModel.view_module_version
+    };
+  }
+
+  async initialize(attributes: any, options: any): Promise<void> {
+    super.initialize(attributes, options);
+  }
+
+  static serializers: ISerializers = {
+    ...DOMWidgetModel.serializers,
+    memoryCopy: {
+      serialize: serializeArray,
+      deserialize: deserializeArrayUint8
+    }
+  };
+
+  memBase: number;
+  ip: number;
+  flags: number;
+  registers: any;
+  segments_values: any;
+  segments_physical: any;
+  numPages: number;
+  memoryCopy?: Uint8Array;
+  static model_name = 'DosboxCoreDumpModel';
+  static model_module = MODULE_NAME;
+  static model_module_version = MODULE_VERSION;
+  static view_name = 'DosboxCoreDumpView';
+  static view_module = MODULE_NAME;
+  static view_module_version = MODULE_VERSION;
+}
+
+export class DosboxCoreDumpView extends DOMWidgetView {
+  async render(): Promise<void> {
+    super.render();
+    return this.setupEventListeners();
+  }
+  async setupEventListeners(): Promise<void> {
+    return;
+  }
+  model: DosboxCoreDumpModel;
 }
 
 export class DosboxRuntimeView extends DOMWidgetView {
@@ -388,12 +456,19 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.pausedBox.setAttribute('name', 'paused');
     this.pausedBox.checked = this.model.get('paused');
     this.el.appendChild(this.pausedBox);
-    const label = document.createElement('label');
-    label.setAttribute('for', 'paused');
-    label.innerHTML = 'Paused';
-    this.el.appendChild(label);
+    const pauseLabel = document.createElement('label');
+    pauseLabel.setAttribute('for', 'paused');
+    pauseLabel.innerHTML = 'Paused';
+    this.el.appendChild(pauseLabel);
     this.pausedBox.addEventListener('change', e => {
       this.model.set('paused', this.pausedBox.checked);
+      this.model.save();
+    });
+    this.coredumpButton = document.createElement('button');
+    this.coredumpButton.innerHTML = 'Coredump';
+    this.el.appendChild(this.coredumpButton);
+    this.coredumpButton.addEventListener('click', e => {
+      this.model.onCommand({ name: 'coreDump', args: [true] }, []);
       this.model.save();
     });
   }
@@ -449,4 +524,5 @@ export class DosboxRuntimeView extends DOMWidgetView {
   layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
   addCanvasListeners = false;
   pausedBox: HTMLInputElement;
+  coredumpButton: HTMLButtonElement;
 }

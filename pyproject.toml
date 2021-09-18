@@ -1,3 +1,46 @@
 [build-system]
 requires = ["jupyter_packaging~=0.7.9", "jupyterlab~=3.0", "setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+target-version = [
+  'py36',
+  'py37',
+  'py38',
+  'py39',
+]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | yt/frontends/stream/sample_data
+)/
+| yt/visualization/_colormap_data.py
+'''
+
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+# The -s option prevents pytest from capturing output sent to stdout
+# -v runs pytest in verbose mode
+# -rsfE: The -r tells pytest to provide extra test summary info on the events
+# specified by the characters following the r. s: skipped, f: failed, E: error
+[tool.pytest.ini_options]
+addopts = '''
+    -s
+    -v
+    -rsfE
+'''

@@ -1,9 +1,10 @@
-from ._version import __version__
-from .utils import KEYCODES, make_zipfile, wait_for_change
 import ipywidgets
+import numpy as np
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
-import numpy as np
+
+from ._version import __version__
+from .utils import KEYCODES, make_zipfile
 
 EXTENSION_VERSION = __version__
 
@@ -94,9 +95,7 @@ class DosboxModel(ipywidgets.DOMWidget):
 
     def coredump(self):
         # This returns a future.  I know, I know.
-        v = wait_for_change(self, "coredumps")
         self.send({"name": "coreDump", "args": [True]})
-        return v
 
     def pop_out(self):
         self.send({"name": "popOut", "args": []})

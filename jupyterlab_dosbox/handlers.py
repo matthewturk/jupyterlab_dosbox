@@ -1,14 +1,14 @@
-import json
-
-from jupyter_server.base.handlers import APIHandler
-from jupyter_server.utils import url_path_join
-import tornado
-import pkg_resources
-import os
 import io
+import os
 import zipfile
 
+import pkg_resources
 import pooch
+import tornado
+from jupyter_server.base.handlers import APIHandler
+from jupyter_server.utils import url_path_join
+
+from .utils import make_zipfile
 
 _wasm_filenames = {
     "wdirect.wasm": (
@@ -21,7 +21,6 @@ _wasm_filenames = {
     ),
 }
 
-from .utils import make_zipfile
 
 _default_components = ["dosbox.conf", "jsdos.json"]
 
@@ -88,13 +87,13 @@ def setup_handlers(web_app):
 
     base_url = web_app.settings["base_url"]
     route_pattern = url_path_join(
-        base_url, "jupyterlab_dosbox", "bundles", "null_bundle.jsdos(\.changed)?"
+        base_url, "jupyterlab_dosbox", "bundles", r"null_bundle.jsdos(\.changed)?"
     )
     handlers = [(route_pattern, RouteHandler)]
     web_app.add_handlers(host_pattern, handlers)
 
     route_wasm_modules = url_path_join(
-        base_url, "jupyterlab_dosbox", "wasm", "(.*).(js|wasm)"
+        base_url, "jupyterlab_dosbox", "wasm", r"(.*)\.(js|wasm)"
     )
     handlers_wasm = [(route_wasm_modules, RouteWasmHandler)]
     web_app.add_handlers(host_pattern, handlers_wasm)

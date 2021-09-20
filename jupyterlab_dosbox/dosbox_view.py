@@ -33,6 +33,14 @@ class DosCoreDumpModel(ipywidgets.Widget):
             from jupyterlab_kaitai import HexViewer
         except ImportError:
             return
+        hv = HexViewer(buffer=self.memoryCopy)
+
+        def scroll_to(button):
+            with hv.hold_trait_notifications():
+                hv.selectionStart = hv.selectionEnd = self.segments_values[
+                    button.description
+                ]
+
         register_widgets = ipywidgets.VBox(
             [
                 ipywidgets.HBox(
@@ -55,10 +63,20 @@ class DosCoreDumpModel(ipywidgets.Widget):
                 for seg in DOS_SEGMENTS
             ]
         )
-        gb = ipywidgets.HBox([register_widgets, segment_widgets])
-        IPython.display.display(
-            ipywidgets.VBox([HexViewer(buffer=self.memoryCopy), gb])
+        [_.children[0].on_click(scroll_to) for _ in segment_widgets.children]
+        selection_labels = ipywidgets.HBox([ipywidgets.Label(), ipywidgets.Label()])
+        traitlets.link(
+            (hv, "selectionStart"),
+            (selection_labels.children[0], "value"),
+            transform=(str, int),
         )
+        traitlets.link(
+            (hv, "selectionEnd"),
+            (selection_labels.children[1], "value"),
+            transform=(str, int),
+        )
+        gb = ipywidgets.HBox([register_widgets, segment_widgets])
+        IPython.display.display(ipywidgets.VBox([selection_labels, hv, gb]))
 
 
 @ipywidgets.register

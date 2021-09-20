@@ -554,7 +554,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // it is not working to correctly snag the data we want. I'll follow up with
     // it in the future.
 
-    const eventLayers = (this.layers as unknown) as ILayerEvents;
+    const eventLayers = this.layers as unknown as ILayerEvents;
     const domToKeyCode = emulatorsUi.controls.domToKeyCode;
     // We can't remove the listeners directly because they are anonymous and gone.
     // We'll do the next best thing and ask the layers to ignore them.

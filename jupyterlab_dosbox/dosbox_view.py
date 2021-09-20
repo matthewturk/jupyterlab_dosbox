@@ -1,4 +1,5 @@
 import ipywidgets
+import numpy as np
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
 

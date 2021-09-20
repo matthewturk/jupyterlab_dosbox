@@ -1,9 +1,9 @@
-from ._version import __version__
-from .utils import KEYCODES, make_zipfile, wait_for_change
 import ipywidgets
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
-import numpy as np
+
+from ._version import __version__
+from .utils import KEYCODES, make_zipfile
 
 EXTENSION_VERSION = __version__
 
@@ -28,6 +28,20 @@ class DosCoreDumpModel(ipywidgets.Widget):
 
 
 @ipywidgets.register
+class DosboxScreenshotModel(ipywidgets.DOMWidget):
+    _model_name = traitlets.Unicode("DosboxScreenshotModel").tag(sync=True)
+    _model_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
+    _model_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
+    _view_name = traitlets.Unicode("DosboxScreenshotView").tag(sync=True)
+    _view_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
+    _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
+
+    screenshot = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
+    width = traitlets.CInt().tag(sync=True)
+    height = traitlets.CInt().tag(sync=True)
+
+
+@ipywidgets.register
 class DosboxModel(ipywidgets.DOMWidget):
     _model_name = traitlets.Unicode("DosboxRuntimeModel").tag(sync=True)
     _model_module = traitlets.Unicode("jupyterlab-dosbox").tag(sync=True)
@@ -37,8 +51,8 @@ class DosboxModel(ipywidgets.DOMWidget):
     _view_module_version = traitlets.Unicode(EXTENSION_VERSION).tag(sync=True)
     activelayer = traitlets.Unicode("default").tag(sync=True)
     paused = traitlets.Bool(False).tag(sync=True)
-    _last_screenshot = traitlets.Bytes(allow_none=True).tag(
-        sync=True, **bytes_serialization
+    screenshots = traitlets.List(trait=traitlets.Instance(DosboxScreenshotModel)).tag(
+        sync=True, **ipywidgets.widget_serialization
     )
     coredumps = traitlets.List(trait=traitlets.Instance(DosCoreDumpModel)).tag(
         sync=True, **ipywidgets.widget_serialization
@@ -93,22 +107,7 @@ class DosboxModel(ipywidgets.DOMWidget):
         self.send({"name": "screenshot", "args": []})
 
     def coredump(self):
-        # This returns a future.  I know, I know.
-        v = wait_for_change(self, "coredumps")
         self.send({"name": "coreDump", "args": [True]})
-        return v
 
     def pop_out(self):
         self.send({"name": "popOut", "args": []})
-
-    @property
-    def last_coredump(self):
-        if self._last_coredump is None or len(self._last_coredump) == 0:
-            return None
-        return np.frombuffer(self._last_coredump, dtype="u1")
-
-    @property
-    def last_screenshot(self):
-        if self._last_screenshot is None or len(self._last_screenshot) == 0:
-            return None
-        return np.frombuffer(self._last_screenshot, dtype="u1").reshape((400, 640, 4))

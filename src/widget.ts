@@ -178,6 +178,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     // Process keyboard commands first
     const manager: ManagerBase<any> = this.widget_manager;
     let newCoreDump: DosboxCoreDumpModel;
+    let newScreenshot: DosboxScreenshotModel;
     let screenshot: ImageData;
     let dosModule: any;
     let memoryCopy: Uint8Array;
@@ -198,8 +199,21 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         break;
       case 'screenshot':
         screenshot = await this.ci.screenshot();
-        this.set('_last_screenshot', screenshot.data.slice(0));
-        this.save();
+        newScreenshot = (await manager.new_widget({
+          model_name: DosboxScreenshotModel.model_name,
+          model_module: DosboxScreenshotModel.model_module,
+          model_module_version: DosboxScreenshotModel.model_module_version,
+          view_name: DosboxScreenshotModel.view_name,
+          view_module: DosboxScreenshotModel.view_module,
+          view_module_version: DosboxScreenshotModel.view_module_version
+        })) as DosboxScreenshotModel;
+        newScreenshot.set('screenshot', screenshot.data.slice(0));
+        newScreenshot.set('width', screenshot.width);
+        newScreenshot.set('height', screenshot.height);
+        newScreenshot.save();
+        this.screenshots = this.get('screenshots').concat([newScreenshot]);
+        this.set('screenshots', this.screenshots);
+        this.save_changes();
         break;
       case 'coreDump':
         dosModule = (this.ci as any).module;
@@ -252,14 +266,6 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         break;
     }
   }
-
-  static serializers: ISerializers = {
-    ...DOMWidgetModel.serializers,
-    _last_screenshot: {
-      serialize: serializeArray,
-      deserialize: deserializeArrayUint8Clamped
-    }
-  };
 
   async run(
     bundleUrl: string,
@@ -325,7 +331,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
   dos: DosInstance;
   ci: CommandInterface;
-  _last_screenshot: Uint8ClampedArray;
+  screenshots: DosboxScreenshotModel[];
   coredumps: DosboxCoreDumpModel[];
   _shouldPopout = false;
   emulatorsUi: EmulatorsUi;
@@ -404,6 +410,69 @@ export class DosboxCoreDumpView extends DOMWidgetView {
   model: DosboxCoreDumpModel;
 }
 
+export class DosboxScreenshotModel extends DOMWidgetModel {
+  defaults(): any {
+    return {
+      ...super.defaults(),
+      width: 0,
+      height: 0,
+      screenshot: EmptyUint8Array,
+      _model_name: DosboxScreenshotModel.model_name,
+      _model_module: DosboxScreenshotModel.model_module,
+      _model_module_version: DosboxScreenshotModel.model_module_version,
+      _view_name: DosboxScreenshotModel.view_name,
+      _view_module: DosboxScreenshotModel.view_module,
+      _view_module_version: DosboxScreenshotModel.view_module_version
+    };
+  }
+
+  async initialize(attributes: any, options: any): Promise<void> {
+    super.initialize(attributes, options);
+  }
+
+  static serializers: ISerializers = {
+    ...DOMWidgetModel.serializers,
+    screenshot: {
+      serialize: serializeArray,
+      deserialize: deserializeArrayUint8Clamped
+    }
+  };
+
+  screenshot?: Uint8ClampedArray;
+  width: number;
+  height: number;
+  static model_name = 'DosboxScreenshotModel';
+  static model_module = MODULE_NAME;
+  static model_module_version = MODULE_VERSION;
+  static view_name = 'DosboxScreenshotView';
+  static view_module = MODULE_NAME;
+  static view_module_version = MODULE_VERSION;
+}
+
+export class DosboxScreenshotView extends DOMWidgetView {
+  async render(): Promise<void> {
+    super.render();
+    this.canvas = document.createElement('canvas');
+    const ctx = this.canvas.getContext('2d');
+    const img = new ImageData(
+      this.model.get('screenshot'),
+      this.model.get('width'),
+      this.model.get('height')
+    );
+    this.canvas.setAttribute('width', this.model.get('width'));
+    this.canvas.setAttribute('height', this.model.get('height'));
+    this.el.appendChild(this.canvas);
+    ctx.putImageData(img, 0, 0);
+    console.log(ctx, img, this.model.get('width'), this.model.get('height'));
+    return this.setupEventListeners();
+  }
+  async setupEventListeners(): Promise<void> {
+    return;
+  }
+  canvas: HTMLCanvasElement;
+  model: DosboxCoreDumpModel;
+}
+
 export class DosboxRuntimeView extends DOMWidgetView {
   render(): void {
     this.div = document.createElement('div');
@@ -471,6 +540,13 @@ export class DosboxRuntimeView extends DOMWidgetView {
       this.model.onCommand({ name: 'coreDump', args: [true] }, []);
       this.model.save();
     });
+    this.screenshotButton = document.createElement('button');
+    this.screenshotButton.innerHTML = 'Screenshot';
+    this.el.appendChild(this.screenshotButton);
+    this.screenshotButton.addEventListener('click', e => {
+      this.model.onCommand({ name: 'screenshot', args: [true] }, []);
+      this.model.save();
+    });
   }
 
   private resetEventListeners(): void {
@@ -525,4 +601,5 @@ export class DosboxRuntimeView extends DOMWidgetView {
   addCanvasListeners = false;
   pausedBox: HTMLInputElement;
   coredumpButton: HTMLButtonElement;
+  screenshotButton: HTMLButtonElement;
 }

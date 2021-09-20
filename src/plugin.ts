@@ -16,7 +16,9 @@ import {
   DosboxRuntimeView,
   IAppInfo,
   DosboxCoreDumpModel,
-  DosboxCoreDumpView
+  DosboxCoreDumpView,
+  DosboxScreenshotModel,
+  DosboxScreenshotView
 } from './widget';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
@@ -51,7 +53,9 @@ async function activate(
       DosboxRuntimeModel,
       DosboxRuntimeView,
       DosboxCoreDumpModel,
-      DosboxCoreDumpView
+      DosboxCoreDumpView,
+      DosboxScreenshotModel,
+      DosboxScreenshotView
     }
   });
 

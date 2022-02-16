@@ -41,6 +41,12 @@ class DosboxScreenshotModel(ipywidgets.DOMWidget):
     width = traitlets.CInt().tag(sync=True)
     height = traitlets.CInt().tag(sync=True)
 
+    @property
+    def screenshot_array(self):
+        return np.frombuffer(self.screenshot, dtype="u1").reshape(
+            (self.height, self.width, 4)
+        )
+
 
 @ipywidgets.register
 class DosboxModel(ipywidgets.DOMWidget):
@@ -112,3 +118,7 @@ class DosboxModel(ipywidgets.DOMWidget):
 
     def pop_out(self):
         self.send({"name": "popOut", "args": []})
+
+    @property
+    def last_screenshot(self):
+        return self.screenshots[-1].screenshot_array

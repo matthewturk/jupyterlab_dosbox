@@ -28,14 +28,14 @@ data_files_spec = [
     (f"share/jupyter/labextensions/{labext_name}", str("."), "install.json"),
     (
         "etc/jupyter/jupyter_server_config.d",
-        "jupyter-config/server-config",
-        "jupterlab_nodeeditor.json",
+        "jupyter-config/jupyter_server_config.d",
+        "jupyterlab_dosbox.json",
     ),
     # For backward compatibility with notebook server
     (
         "etc/jupyter/jupyter_notebook_config.d",
         "jupyter-config/nb-config",
-        "jupterlab_nodeeditor.json",
+        "jupterlab_dosbox.json",
     ),
 ]
 

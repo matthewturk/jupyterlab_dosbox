@@ -45,8 +45,8 @@ addopts = '''
     -rsfE
 '''
 [tool.jupyter-packaging.options]
-skip-if-exists = ["jupyterlab_nodeeditor/labextension/static/style.js"]
-ensured-targets = ["jupyterlab_nodeeditor/labextension/static/style.js", "jupyterlab_nodeeditor/labextension/package.json"]
+skip-if-exists = ["jupyterlab_dosbox/labextension/static/style.js"]
+ensured-targets = ["jupyterlab_dosbox/labextension/static/style.js", "jupyterlab_dosbox/labextension/package.json"]
 
 [tool.jupyter-packaging.builder]
 factory = "jupyter_packaging.npm_builder"

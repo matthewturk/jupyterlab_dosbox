@@ -1,9 +1,9 @@
-.jsdos {
+.jp-jsDosWidget {
     max-width: 640px;
     max-height: 480px;
 }
 
-.jsdos > canvas {
+.jp-jsDosWidget > canvas {
     width: 640px;
     height: 400px;
 }

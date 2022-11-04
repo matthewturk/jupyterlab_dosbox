@@ -1,14 +1,13 @@
+import asyncio
+import io
 import os
 import string
 import zipfile
-import io
-import functools
-import asyncio
 
 KEYCODES = {
     "\t": [False, "tab"],
     " ": [False, "space"],
-    #public KBD_grave = 96;
+    # public KBD_grave = 96;
     "-": [False, "minus"],
     "=": [False, "equals"],
     "\\": [False, "backslash"],
@@ -16,11 +15,11 @@ KEYCODES = {
     "]": [False, "rightbracket"],
     ";": [False, "semicolon"],
     "'": [False, "quote"],
-    "." : [False, "period"],
-    "," : [False, "comma"],
-    "/" : [False, "slash"],
-    "!" : [True, "1"],
-    "@":  [True, "2"],
+    ".": [False, "period"],
+    ",": [False, "comma"],
+    "/": [False, "slash"],
+    "!": [True, "1"],
+    "@": [True, "2"],
     "#": [True, "3"],
     "$": [True, "4"],
     "%": [True, "5"],
@@ -35,20 +34,20 @@ KEYCODES = {
     "}": [True, "rightbracket"],
     "|": [True, "backslash"],
     ":": [True, "semicolon"],
-    "\"": [True, "quote"],
+    '"': [True, "quote"],
     "<": [True, "comma"],
     ">": [True, "period"],
-    "?": [True, "slash"]
+    "?": [True, "slash"],
 }
 
-KEYCODES.update(
-    [_, (True, _.lower())] for _ in string.ascii_uppercase
-)
-KEYCODES.update(
-    [_, (False, _)] for _ in string.ascii_lowercase
-)
+KEYCODES.update([_, (True, _.lower())] for _ in string.ascii_uppercase)
+KEYCODES.update([_, (False, _)] for _ in string.ascii_lowercase)
 
-def make_zipfile(filenames, prefix_directory = ""):
+DOS_REGISTERS = ["ax", "cx", "dx", "sp", "bp", "si", "di"]
+DOS_SEGMENTS = ["es", "cs", "ss", "ds", "fs", "gs"]
+
+
+def make_zipfile(filenames, prefix_directory=""):
     """
     This accepts either a list of strings, in which case the files will be
     added to an in-memory zipfile from those named files, or a set of
@@ -63,11 +62,12 @@ def make_zipfile(filenames, prefix_directory = ""):
     dirnames = set()
     for fn in filenames:
         dirnames.add(os.path.dirname(fn))
-    base = os.path.commonpath(list(dirnames))
     # This breaks if everything is under a subdirectory
-    #dirnames = set(os.path.relpath(_, base) for _ in dirnames if len(_) > 0)
-    if '.' in dirnames: dirnames.remove('.')
-    if '' in dirnames: dirnames.remove('')
+    # dirnames = set(os.path.relpath(_, base) for _ in dirnames if len(_) > 0)
+    if "." in dirnames:
+        dirnames.remove(".")
+    if "" in dirnames:
+        dirnames.remove("")
     b = io.BytesIO()
     with zipfile.ZipFile(b, "w") as f:
         for d in sorted(dirnames):
@@ -80,7 +80,8 @@ def make_zipfile(filenames, prefix_directory = ""):
     b.seek(0)
     return b.read()
 
-def recompress_zipfile(input_filename, prefix_directory = ""):
+
+def recompress_zipfile(input_filename, prefix_directory=""):
     """
     This accepts an input filename of a zip file that needs to be converted
     to something that is just ZIP_STORED, and it returns the bytes of the new
@@ -92,40 +93,47 @@ def recompress_zipfile(input_filename, prefix_directory = ""):
             output_bytes[fn] = f.read(fn)
     return make_zipfile(output_bytes, prefix_directory)
 
+
 # Inspired by https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Asynchronous.html
 def wait_for_change(widget, value):
     future = asyncio.Future()
+
     def getvalue(change):
         # make the new value available
         future.set_result(change.new)
         widget.unobserve(getvalue, value)
+
     widget.observe(getvalue, value)
     return future
 
+
 def test_zipfile():
     zf = make_zipfile(
-        {'hi/there.txt': 'this is text',
-         'hello.txt': 'more_text!',
-         'README.md': None}
+        {"hi/there.txt": "this is text", "hello.txt": "more_text!", "README.md": None}
     )
     o = io.BytesIO(zf)
     o.seek(0)
     with zipfile.ZipFile(o, "r") as f:
-        assert(f.getinfo("hi/").is_dir() == True)
-        assert(f.getinfo("hi/there.txt").is_dir() == False)
-        assert(f.getinfo("hello.txt").is_dir() == False)
-        assert(f.getinfo("README.md").is_dir() == False)
+        assert f.getinfo("hi/").is_dir() is True
+        assert f.getinfo("hi/there.txt").is_dir() is False
+        assert f.getinfo("hello.txt").is_dir() is False
+        assert f.getinfo("README.md").is_dir() is False
+
 
 def test_bundlefile():
-    from jupyterlab_dosbox.handlers import _default_components
     import pkg_resources
+
+    from jupyterlab_dosbox.handlers import _default_components
+
     filenames = {}
     for fn in _default_components:
-        data = pkg_resources.resource_stream("jupyterlab_dosbox",
-                os.path.join("bundles", fn)).read()
+        data = pkg_resources.resource_stream(
+            "jupyterlab_dosbox", os.path.join("bundles", fn)
+        ).read()
         filenames[os.path.join(".jsdos", fn)] = data
     with open("output.zip", "wb") as f:
         f.write(make_zipfile(filenames))
+
 
 if __name__ == "__main__":
     test_zipfile()

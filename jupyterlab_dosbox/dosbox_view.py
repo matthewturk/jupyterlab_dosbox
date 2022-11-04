@@ -1,10 +1,9 @@
 import ipywidgets
-import numpy as np
 import traitlets
 from ipywidgets.widgets.trait_types import bytes_serialization
 
 from ._version import __version__
-from .utils import KEYCODES, make_zipfile
+from .utils import DOS_REGISTERS, DOS_SEGMENTS, KEYCODES, make_zipfile
 
 EXTENSION_VERSION = __version__
 
@@ -26,6 +25,58 @@ class DosCoreDumpModel(ipywidgets.Widget):
     segments_physical = traitlets.Dict().tag(sync=True)
     numPages = traitlets.CInt().tag(sync=True)
     memoryCopy = traitlets.Bytes(allow_none=True).tag(sync=True, **bytes_serialization)
+
+    def _ipython_display_(self):
+        import IPython.display
+
+        try:
+            from jupyterlab_kaitai import HexViewer
+        except ImportError:
+            return
+        hv = HexViewer(buffer=self.memoryCopy)
+
+        def scroll_to(button):
+            with hv.hold_trait_notifications():
+                hv.selectionStart = hv.selectionEnd = self.segments_values[
+                    button.description
+                ]
+
+        register_widgets = ipywidgets.VBox(
+            [
+                ipywidgets.HBox(
+                    [
+                        ipywidgets.Button(description=reg),
+                        ipywidgets.Text(str(self.registers[reg]), disabled=True),
+                    ]
+                )
+                for reg in DOS_REGISTERS
+            ]
+        )
+        segment_widgets = ipywidgets.VBox(
+            [
+                ipywidgets.HBox(
+                    [
+                        ipywidgets.Button(description=seg),
+                        ipywidgets.Text(str(self.segments_values[seg]), disabled=True),
+                    ]
+                )
+                for seg in DOS_SEGMENTS
+            ]
+        )
+        [_.children[0].on_click(scroll_to) for _ in segment_widgets.children]
+        selection_labels = ipywidgets.HBox([ipywidgets.Label(), ipywidgets.Label()])
+        traitlets.link(
+            (hv, "selectionStart"),
+            (selection_labels.children[0], "value"),
+            transform=(str, int),
+        )
+        traitlets.link(
+            (hv, "selectionEnd"),
+            (selection_labels.children[1], "value"),
+            transform=(str, int),
+        )
+        gb = ipywidgets.HBox([register_widgets, segment_widgets])
+        IPython.display.display(ipywidgets.VBox([selection_labels, hv, gb]))
 
 
 @ipywidgets.register

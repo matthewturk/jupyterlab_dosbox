@@ -478,7 +478,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.div = document.createElement('div');
     this.divId = 'dos-' + UUID.uuid4();
     this.div.setAttribute('id', this.divId);
-    this.el.classList.add('jsdos');
+    this.el.classList.add('jp-jsDosWidget');
     this.el.appendChild(this.div);
     this.setupEventListeners();
     if (this.model.get('running')) {
@@ -520,29 +520,47 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.layers.loading.style.display = 'none';
     this.changeLayer();
     this.resetEventListeners();
+    this.pausedDiv = document.createElement('div');
+    this.pausedDiv.classList.add('jupyter-widgets');
+    this.pausedDiv.classList.add('jupyter-button');
+    this.pausedDiv.classList.add('widget-checkbox');
     this.pausedBox = document.createElement('input');
+    this.pausedBox.disabled =
+      (this.ci as any).module._pauseExecution === undefined;
     this.pausedBox.setAttribute('type', 'checkbox');
     this.pausedBox.setAttribute('name', 'paused');
     this.pausedBox.checked = this.model.get('paused');
-    this.el.appendChild(this.pausedBox);
+    this.pausedDiv.appendChild(this.pausedBox);
     const pauseLabel = document.createElement('label');
+    pauseLabel.classList.add('widget-label-basic');
     pauseLabel.setAttribute('for', 'paused');
     pauseLabel.innerHTML = 'Paused';
-    this.el.appendChild(pauseLabel);
+    this.pausedDiv.appendChild(pauseLabel);
+    this.el.appendChild(this.pausedDiv);
     this.pausedBox.addEventListener('change', e => {
       this.model.set('paused', this.pausedBox.checked);
       this.model.save();
     });
+    this.coredumpDiv = document.createElement('div');
+    this.coredumpDiv.classList.add('jupyter-widgets');
+    this.coredumpDiv.classList.add('jupyter-button');
+    this.coredumpDiv.classList.add('widget-button');
     this.coredumpButton = document.createElement('button');
     this.coredumpButton.innerHTML = 'Coredump';
-    this.el.appendChild(this.coredumpButton);
+    this.coredumpDiv.appendChild(this.coredumpButton);
+    this.el.append(this.coredumpDiv);
     this.coredumpButton.addEventListener('click', e => {
       this.model.onCommand({ name: 'coreDump', args: [true] }, []);
       this.model.save();
     });
+    this.screenshotDiv = document.createElement('div');
+    this.screenshotDiv.classList.add('jupyter-widgets');
+    this.screenshotDiv.classList.add('jupyter-button');
+    this.screenshotDiv.classList.add('widget-button');
     this.screenshotButton = document.createElement('button');
     this.screenshotButton.innerHTML = 'Screenshot';
-    this.el.appendChild(this.screenshotButton);
+    this.screenshotDiv.appendChild(this.screenshotButton);
+    this.el.appendChild(this.screenshotDiv);
     this.screenshotButton.addEventListener('click', e => {
       this.model.onCommand({ name: 'screenshot', args: [true] }, []);
       this.model.save();
@@ -554,7 +572,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // it is not working to correctly snag the data we want. I'll follow up with
     // it in the future.
 
-    const eventLayers = this.layers as unknown as ILayerEvents;
+    const eventLayers = (this.layers as unknown) as ILayerEvents;
     const domToKeyCode = emulatorsUi.controls.domToKeyCode;
     // We can't remove the listeners directly because they are anonymous and gone.
     // We'll do the next best thing and ask the layers to ignore them.
@@ -600,6 +618,9 @@ export class DosboxRuntimeView extends DOMWidgetView {
   layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
   addCanvasListeners = false;
   pausedBox: HTMLInputElement;
+  pausedDiv: HTMLDivElement;
   coredumpButton: HTMLButtonElement;
+  coredumpDiv: HTMLDivElement;
   screenshotButton: HTMLButtonElement;
+  screenshotDiv: HTMLDivElement;
 }

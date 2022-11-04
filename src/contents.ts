@@ -3,7 +3,7 @@ import { Signal, ISignal } from '@lumino/signaling';
 import { ModelDB } from '@jupyterlab/observables';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { PathExt } from '@jupyterlab/coreutils';
-import { base64ToBuffer, bufferToBase64 } from '@jupyter-widgets/base';
+import { base64ToBuffer, bufferToBase64 } from '@jupyter-widgets/base-manager';
 //import { ENOENT } from 'constants';
 
 type EmscriptenFileModel = {
@@ -308,6 +308,8 @@ export class EmscriptenDrive implements Contents.IDrive {
           contentFormat = 'json';
           break;
         case '.txt':
+        case '.TXT':
+          //content = atob(this.fs.readFile('/' + path, { encoding: 'utf8' }));
           content = atob(fileContent);
           mimeType = 'text/text-plain';
           contentFormat = 'text';

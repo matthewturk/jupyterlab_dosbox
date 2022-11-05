@@ -26,6 +26,7 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import { EmulatorsUi } from 'emulators-ui';
 import { Layers } from 'emulators-ui/dist/types/dom/layers';
+import { keyboard } from 'emulators-ui/dist/types/controls/keyboard';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { EmscriptenDrive } from './contents';
 import { dosIcon } from './icon';
@@ -154,11 +155,11 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     this._currentlyProcessing = true;
     const startTime = Math.max(Date.now(), this._lastStartTime);
     let count = 0;
-    console.log('processing', this._commandQueue);
+    // console.log('processing', this._commandQueue);
     while (this._commandQueue.length > 0) {
       const element = this._commandQueue.shift();
       const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
-      console.log('processing', element[0], keyCode);
+      // console.log('processing', element[0], keyCode);
       (this.ci as any).addKey(
         keyCode,
         element[1],
@@ -175,7 +176,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     const dosModule = (this.ci as any).transport.module;
     dosModule._pauseExecution(this.paused);
     if (!this.paused) {
-      console.log('Processing queued keys.');
+      // console.log('Processing queued keys.');
       this.processQueue();
     }
   }
@@ -198,7 +199,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         // is this safe?
         this._commandQueue = this._commandQueue.concat(keyCodes);
         if (this.get('paused')) {
-          console.log('Queuing keys for deferred execution');
+          // console.log('Queuing keys for deferred execution');
           return;
         } else {
           return this.processQueue();
@@ -251,8 +252,8 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         this.save_changes();
         break;
       case 'sendZipfile':
-        console.log('ci');
-        console.log(this.ci);
+        // console.log('ci');
+        // console.log(this.ci);
         dosModule = (this.ci as any).transport.module;
         dosModule.FS.chdir('/home/web_user');
         for (bytesView of buffers) {
@@ -507,16 +508,15 @@ export class DosboxRuntimeView extends DOMWidgetView {
   async connectLayers(): Promise<void> {
     this.ci = await this.model.ciPromise;
     this.layers = this.model.emulatorsUi.dom.layers(this.div);
-
+    this.model.emulatorsUi.controls.keyboard(this.layers, this.ci);
     // This is where we will connect our layers. It's possible this will cause
     // issues with multiple views.
-    emulatorsUi.persist.save('', this.layers, this.ci, emulators);
+    this.model.emulatorsUi.persist.save('', this.layers, this.ci, emulators);
     this.model.emulatorsUi.graphics.webGl(this.layers, this.ci);
     this.model.emulatorsUi.sound.audioNode(this.ci);
-    const config = await this.ci.config();
     this.layersConfig = {}; //extractLayersConfig(config);
     this.layerNames = Object.keys(this.layersConfig);
-    emulatorsUi.controls.options(
+    this.model.emulatorsUi.controls.options(
       this.layers,
       this.layerNames,
       this.changeLayer,
@@ -589,17 +589,24 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // We can't remove the listeners directly because they are anonymous and gone.
     // We'll do the next best thing and ask the layers to ignore them.
     this.layerKeyHandlers = [eventLayers.onKeyDown, eventLayers.onKeyUp];
+    //console.log('Original handlers', this.layerKeyHandlers);
     this.layers.setOnKeyDown(() => null);
     this.layers.setOnKeyUp(() => null);
     // The sadness of making these anonymous and unretrievable functions has not
     // escaped me, by the way.
     if (this.addCanvasListeners === true) {
       this.layers.canvas.addEventListener('keydown', e => {
+        // console.log(
+        //   'Trying to send a key down',
+        //   domToKeyCode((e as any).keyCode),
+        //   this.layerKeyHandlers[0]
+        // );
         e.preventDefault();
         e.stopPropagation();
         this.layerKeyHandlers[0](domToKeyCode((e as any).keyCode));
       });
       this.layers.canvas.addEventListener('keyup', e => {
+        // console.log('Trying to send a key up');
         e.preventDefault();
         e.stopPropagation();
         this.layerKeyHandlers[1](domToKeyCode((e as any).keyCode));
@@ -628,7 +635,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
   layers: Layers;
   ci: CommandInterface;
   layerKeyHandlers: [(keyCode: number) => void, (keyCode: number) => void];
-  addCanvasListeners = false;
+  addCanvasListeners = true;
   pausedBox: HTMLInputElement;
   pausedDiv: HTMLDivElement;
   coredumpButton: HTMLButtonElement;

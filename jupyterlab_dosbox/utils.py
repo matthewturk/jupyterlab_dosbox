@@ -42,6 +42,7 @@ KEYCODES = {
 
 KEYCODES.update([_, (True, _.lower())] for _ in string.ascii_uppercase)
 KEYCODES.update([_, (False, _)] for _ in string.ascii_lowercase)
+KEYCODES.update([_, (False, _)] for _ in string.digits)
 
 DOS_REGISTERS = ["ax", "cx", "dx", "sp", "bp", "si", "di"]
 DOS_SEGMENTS = ["es", "cs", "ss", "ds", "fs", "gs"]

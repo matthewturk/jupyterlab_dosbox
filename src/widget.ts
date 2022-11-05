@@ -134,8 +134,8 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
     // Let's also add a file browser
     const drive = new EmscriptenDrive(
-      (this.ci as any).module.FS,
-      (this.ci as any).module._rescanFilesystem
+      (this.ci as any).transport.module.FS,
+      (this.ci as any).transport.module._rescanFilesystem
     );
     appInfo.manager.services.contents.addDrive(drive);
     const browser = appInfo.factory.createFileBrowser('EMFS-' + this.id, {
@@ -153,9 +153,11 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
     this._currentlyProcessing = true;
     const startTime = Date.now();
     let count = 0;
+    console.log('processing', this._commandQueue);
     while (this._commandQueue.length > 0) {
       const element = this._commandQueue.shift();
       const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
+      console.log('processing', keyCode);
       (this.ci as any).addKey(
         keyCode,
         element[1],
@@ -168,7 +170,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
   pauseChanged(): void {
     this.paused = this.get('paused');
-    const dosModule = (this.ci as any).module;
+    const dosModule = (this.ci as any).transport.module;
     dosModule._pauseExecution(this.paused);
     if (!this.paused) {
       console.log('Processing queued keys.');
@@ -219,7 +221,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         this.save_changes();
         break;
       case 'coreDump':
-        dosModule = (this.ci as any).module;
+        dosModule = (this.ci as any).transport.module;
         await dosModule._dumpMemory(command.args[0] ? true : false);
         memoryCopy = command.args[0]
           ? dosModule.memoryContents['memoryCopy']
@@ -247,7 +249,9 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
         this.save_changes();
         break;
       case 'sendZipfile':
-        dosModule = (this.ci as any).module;
+        console.log('ci');
+        console.log(this.ci);
+        dosModule = (this.ci as any).transport.module;
         dosModule.FS.chdir('/home/web_user');
         for (bytesView of buffers) {
           bytes = new Uint8Array(bytesView.buffer);
@@ -531,7 +535,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.pausedDiv.classList.add('widget-checkbox');
     this.pausedBox = document.createElement('input');
     this.pausedBox.disabled =
-      (this.ci as any).module._pauseExecution === undefined;
+      (this.ci as any).transport.module._pauseExecution === undefined;
     this.pausedBox.setAttribute('type', 'checkbox');
     this.pausedBox.setAttribute('name', 'paused');
     this.pausedBox.checked = this.model.get('paused');

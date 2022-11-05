@@ -148,16 +148,17 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
 
   private async processQueue() {
     if (this._currentlyProcessing) {
+      console.log('Cannot process, returning.');
       return;
     }
     this._currentlyProcessing = true;
-    const startTime = Date.now();
+    const startTime = Math.max(Date.now(), this._lastStartTime);
     let count = 0;
     console.log('processing', this._commandQueue);
     while (this._commandQueue.length > 0) {
       const element = this._commandQueue.shift();
       const keyCode = this.emulatorsUi.controls.namedKeyCodes[element[0]];
-      console.log('processing', keyCode);
+      console.log('processing', element[0], keyCode);
       (this.ci as any).addKey(
         keyCode,
         element[1],
@@ -165,6 +166,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       );
       count += 1;
     }
+    this._lastStartTime = startTime + Math.ceil(count / 10);
     this._currentlyProcessing = false;
   }
 
@@ -347,6 +349,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
   activelayer = 'default';
   _currentlyProcessing = false;
   _commandQueue: Array<[string, boolean]> = [];
+  _lastStartTime = 0;
   paused: false;
 
   static model_name = 'DosboxRuntimeModel';

@@ -52,7 +52,7 @@ jobs:
           python -m pip install .
 
           echo "Checking labextension list"
-          jupyter labextension list 2>&1 | grep -ie "jupyterlab_dosbox.*OK"
+          jupyter labextension list 2>&1 | grep -ie "jupyterlab-dosbox.*OK"
 
           echo "Checking browser check"
           python -m jupyterlab.browser_check

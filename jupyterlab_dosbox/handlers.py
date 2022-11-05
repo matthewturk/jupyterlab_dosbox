@@ -11,13 +11,13 @@ from jupyter_server.utils import url_path_join
 from .utils import make_zipfile
 
 _wasm_filenames = {
-    "wdirect.wasm": (
-        "https://unpkg.com/emulators@0.0.55/dist/wdirect.wasm",
-        "11bff62af123a3e693ceef43bc47ba7ba7aeea53a28f4a3c9772954b4d0d982a",
+    "wdosbox.wasm": (
+        "https://unpkg.com/emulators@0.73.8/dist/wdosbox.wasm",
+        "5a932a483cc366ce581ff3bee46a2e775fa315a8fb492dffb3029594ea2472bf",
     ),
-    "wdirect.js": (
-        "https://unpkg.com/emulators@0.0.55/dist/wdirect.js",
-        "6c94981b57b0c8ffa8d410f134a6342a2ad3420319c1cb6738b1c445e1756959",
+    "wdosbox.js": (
+        "https://unpkg.com/emulators@0.73.8/dist/wdosbox.js",
+        "80c871923d6265625a4ca3ee9799c2a856eeae6a88fc535a100fd5d98c004abc",
     ),
 }
 

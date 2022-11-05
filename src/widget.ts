@@ -10,11 +10,14 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
-import {
-  extractLayersConfig,
+import { IMemoryDump } from './jsdosinterfaces';
+
+import type {
+  LayerConfig,
   LayersConfig,
-  IMemoryDump
-} from './jsdosinterfaces';
+  LegacyLayersConfig,
+  LegacyLayerConfig
+} from 'emulators-ui/dist/types/controls/layers-config';
 
 import { CommandInterface, Emulators } from 'emulators';
 import { DosInstance } from 'emulators-ui/dist/types/js-dos';
@@ -35,7 +38,7 @@ const _emulatorsUi = await import('emulators-ui');
 
 // Having this be 'janus' causes some issues we can't work around
 // And for the purposes of debugging, we want this to be dosDirect.
-const workerType = 'dosDirect';
+const workerType = 'dosboxDirect';
 
 declare const emulators: Emulators;
 declare const emulatorsUi: EmulatorsUi;
@@ -286,7 +289,7 @@ export abstract class DosboxRuntimeModelAbs extends DOMWidgetModel {
       const changesBundle = await emulatorsUi.persist
         .load(changesUrl, emulators)
         .catch(() =>
-          emulatorsUi.network.resolveBundle(changesUrl, { cache: null })
+          emulatorsUi.network.resolveBundle(changesUrl, { httpCache: false })
         );
       const bundle = await bundlePromise;
       this.ciPromise = emulators[workerType]([bundle, changesBundle]);
@@ -504,13 +507,15 @@ export class DosboxRuntimeView extends DOMWidgetView {
     this.model.emulatorsUi.graphics.webGl(this.layers, this.ci);
     this.model.emulatorsUi.sound.audioNode(this.ci);
     const config = await this.ci.config();
-    this.layerConfig = extractLayersConfig(config);
-    this.layerNames = Object.keys(this.layerConfig);
+    this.layersConfig = {}; //extractLayersConfig(config);
+    this.layerNames = Object.keys(this.layersConfig);
     emulatorsUi.controls.options(
       this.layers,
-      this.ci,
       this.layerNames,
-      this.changeLayer
+      this.changeLayer,
+      0,
+      0,
+      0
     );
     // Make all the different layers invisible or hidden
     (this.layers as any).clickToStart.style.display = 'none';
@@ -572,7 +577,7 @@ export class DosboxRuntimeView extends DOMWidgetView {
     // it is not working to correctly snag the data we want. I'll follow up with
     // it in the future.
 
-    const eventLayers = (this.layers as unknown) as ILayerEvents;
+    const eventLayers = this.layers as unknown as ILayerEvents;
     const domToKeyCode = emulatorsUi.controls.domToKeyCode;
     // We can't remove the listeners directly because they are anonymous and gone.
     // We'll do the next best thing and ask the layers to ignore them.
@@ -600,16 +605,16 @@ export class DosboxRuntimeView extends DOMWidgetView {
       return;
     }
     const layerName: string = this.model.get('activelayer');
-    const layer = this.layerConfig[layerName];
+    const layer = _getLayer(this.layersConfig, this.layerNames, layerName);
     if (layer === undefined) {
       return;
     }
-    emulatorsUi.controls.keyboard(this.layers, this.ci, layer.mapper);
-    emulatorsUi.controls.mouse(this.layers, this.ci);
+    emulatorsUi.controls.keyboard(this.layers, this.ci);
+    emulatorsUi.controls.mouse(false, 0, this.layers, this.ci);
   }
 
   layerNames: string[] = null;
-  layerConfig: LayersConfig = null;
+  layersConfig: LayersConfig | LegacyLayersConfig = null;
   model: DosboxRuntimeModelAbs;
   div: HTMLDivElement;
   divId: string;
@@ -623,4 +628,17 @@ export class DosboxRuntimeView extends DOMWidgetView {
   coredumpDiv: HTMLDivElement;
   screenshotButton: HTMLButtonElement;
   screenshotDiv: HTMLDivElement;
+}
+
+function _getLayer(
+  layers: LayersConfig | LegacyLayersConfig,
+  layerNames: string[],
+  layerName: string
+): LayerConfig | LegacyLayerConfig {
+  if ('layers' in layers) {
+    const layerIndex = layerNames.indexOf(layerName);
+    return (layers as LayersConfig).layers[layerIndex];
+  } else {
+    return (layers as LegacyLayersConfig)[layerName];
+  }
 }

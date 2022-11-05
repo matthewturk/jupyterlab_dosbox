@@ -4,22 +4,27 @@
     "composite": true,
     "declaration": true,
     "esModuleInterop": true,
+    "importsNotUsedAsValues": "remove",
     "incremental": true,
     "jsx": "react",
     "module": "esnext",
     "moduleResolution": "node",
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "noImplicitAny": true,
     "noUnusedLocals": false,
     "preserveWatchOutput": true,
     "resolveJsonModule": true,
     "outDir": "lib",
     "rootDir": "src",
+    "typeRoots": [
+      "./node_modules/@types/",
+      "./src/localtypes"
+    ],
     "strict": true,
     "strictNullChecks": false,
     "target": "es2017",
     "types": ["node", "emscripten"],
     "skipLibCheck": true
   },
-  "include": ["src/*.ts"]
+  "include": ["src/*"]
 }

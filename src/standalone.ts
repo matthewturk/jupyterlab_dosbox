@@ -35,7 +35,7 @@ export class DosboxWidget extends Widget {
       'bundles',
       'null_bundle.jsdos'
     );
-    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosDirect' });
+    this.dos = Dos(this.dosDiv, { emulatorFunction: 'dosboxDirect' });
     this.ci = await this.dos.run(requestUrl);
     this.dosInitialized = true;
   }
